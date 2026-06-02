@@ -72,7 +72,7 @@ spec:
 This will run the `fuji-3B-v3-flash-single-host` model, and all the input configurations (e.g. max number of steps, sequence length, parallelism) can be found [here](https://github.com/apple/axlearn/blob/main/axlearn/experiments/testdata/axlearn.experiments.text.gpt.c4_trainer/fuji-3B-v3-flash-single-host.txt). The input dataset is the public tensorflow [C4 dataset](https://www.tensorflow.org/datasets/catalog/c4).
 
 ## Example 2: custom configuration training for a Fuji model on EKS
-For specifying a custom configuration definition, we are using a [Python script](../../../.github/container/fuji-train-perf.py). The script is made based the following [AXLearn c4 trainer script](https://github.com/apple/axlearn/blob/main/axlearn/experiments/text/gpt/c4_trainer.py). The core configuration part is the following:
+For specifying a custom configuration definition, we are using a [Python script](https://github.com/NVIDIA/JAX-Toolbox/blob/main/.github/container/fuji-train-perf.py). The script is made based the following [AXLearn c4 trainer script](https://github.com/apple/axlearn/blob/main/axlearn/experiments/text/gpt/c4_trainer.py). The core configuration part is the following:
 ```python
 
 # Build the model config
@@ -128,8 +128,8 @@ trainer_config=trainer_config,
 )
 ```
 In particular, `launch.setup()` refers to [this code in AXLearn](https://github.com/apple/axlearn/blob/main/axlearn/common/launch.py), wher ether'es the main call to `jax` and its [distributed initialization](https://docs.jax.dev/en/latest/_autosummary/jax.distributed.initialize.html).
-[Here](../../../.github/eks-workflow-files/axlearn/axlearn-fuji-model.yml) you can find an example of deployment to EKS, with the above script, that uses `fuji-3B-v3-flash` model.
+[Here](https://github.com/NVIDIA/JAX-Toolbox/blob/main/.github/eks-workflow-files/axlearn/axlearn-fuji-model.yml) you can find an example of deployment to EKS, with the above script, that uses `fuji-3B-v3-flash` model.
 
 
 ## Testing
-[Here is the YAML file](../../../.github/eks-workflow-files/axlearn/axlearn-job.yml) used for testing AXLearn funcitonalities. In particular, this test makes uses of [`test_axlearn.sh` script](../../../.github/container/test-axlearn.sh). The test runs `pytest` against all the tests contains in `/opt/axlearn/axlearn/common` folder.
+[Here is the YAML file](https://github.com/NVIDIA/JAX-Toolbox/blob/main/.github/eks-workflow-files/axlearn/axlearn-job.yml) used for testing AXLearn funcitonalities. In particular, this test makes uses of [`test_axlearn.sh` script](https://github.com/NVIDIA/JAX-Toolbox/blob/main/.github/container/test-axlearn.sh). The test runs `pytest` against all the tests contains in `/opt/axlearn/axlearn/common` folder.

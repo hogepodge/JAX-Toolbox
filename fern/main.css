@@ -1,0 +1,92 @@
+/* JAX-Toolbox documentation — NVIDIA-consistent theming.
+ *
+ * Layered on Fern's default theme. The hosted `global-theme: nvidia` preset in
+ * docs.yml adds the full docs.nvidia.com chrome when published with auth; these
+ * rules keep the LOCAL / unauthenticated preview on-brand (NVIDIA green accents,
+ * NVIDIA Sans typography, branded headings/tables/links) so the POC is
+ * consistent without `fern login`.
+ *
+ * Selectors target Fern's stable class names (verified against the rendered DOM).
+ */
+
+:root {
+  --nv-green: #76b900;        /* NVIDIA brand green */
+  --nv-green-strong: #5b8f00; /* darker green for text/links on white */
+  --nv-black: #000000;
+}
+
+/* ---------------------------------------------------------------- Header --- */
+/* Thin NVIDIA-green keyline under the top bar — the recognizable brand cue. */
+#fern-header {
+  border-bottom: 2px solid var(--nv-green);
+}
+
+.fern-logo-text {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* ----------------------------------------------------------- Content links --- */
+.fern-prose a,
+.fern-mdx-link {
+  color: var(--nv-green-strong);
+  text-decoration: none;
+}
+
+.fern-prose a:hover,
+.fern-mdx-link:hover {
+  color: var(--nv-green);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* -------------------------------------------------------------- Headings --- */
+.fern-prose h1,
+.fern-page-heading {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Green keyline under H2s, echoing the header accent. */
+.fern-prose h2 {
+  font-weight: 700;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-green) 35%, transparent);
+}
+
+/* --------------------------------------------------------------- Sidebar --- */
+/* Active page: green text + a left keyline. */
+.fern-sidebar-link[data-state="active"] {
+  color: var(--nv-green-strong);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--nv-green);
+}
+
+.fern-sidebar-link:hover {
+  color: var(--nv-green-strong);
+}
+
+/* ---------------------------------------------------------------- Tables --- */
+/* Wide tables (build status, container versions) scroll horizontally; header
+ * row gets a subtle NVIDIA-green tint + underline. */
+.fern-prose table {
+  display: block;
+  overflow-x: auto;
+}
+
+.fern-prose thead th {
+  background: color-mix(in srgb, var(--nv-green) 12%, transparent);
+  border-bottom: 2px solid var(--nv-green);
+}
+
+/* ------------------------------------------------------------------ Code --- */
+/* Inline code: subtle green-tinted border (block code keeps Fern defaults). */
+.fern-prose :not(pre) > code {
+  border: 1px solid color-mix(in srgb, var(--nv-green) 25%, transparent);
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------ Misc accents --- */
+.fern-back-to-top:hover {
+  color: var(--nv-green);
+}

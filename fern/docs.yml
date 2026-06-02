@@ -1,0 +1,137 @@
+# Fern documentation site configuration for JAX-Toolbox.
+# Modeled on the layout used by https://github.com/ai-dynamo/dynamo
+# (single-product variant: navigation is inline here so pages live at root URLs).
+
+# TODO: replace with the JAX-Toolbox Fern instance URL once the project is
+# provisioned in the Fern dashboard, and add the production custom domain.
+instances:
+  - url: jax-toolbox.docs.buildwithfern.com
+    # custom-domain: docs.nvidia.com/jax-toolbox
+
+title: JAX Toolbox Documentation
+
+global-theme: nvidia
+
+logo:
+  dark: ../docs/assets/NVIDIA_dark.svg
+  light: ../docs/assets/NVIDIA_light.svg
+  height: 20
+  href: /
+  right-text: JAX Toolbox Documentation
+
+favicon: ../docs/assets/NVIDIA_symbol.svg
+
+colors:
+  accentPrimary:
+    dark: '#76B900'
+    light: '#76B900'
+  background:
+    light: '#FFFFFF'
+    dark: '#000000'
+
+# NVIDIA Sans (body) + Roboto Mono (code) render in local dev without auth,
+# unlike `global-theme`. Font files live under ../docs/assets/fonts/.
+typography:
+  bodyFont:
+    name: NVIDIASans
+    paths:
+      - path: ../docs/assets/fonts/NVIDIASans.woff2
+        style: normal
+      - path: ../docs/assets/fonts/NVIDIASans_Italic.woff2
+        style: italic
+  codeFont:
+    name: RobotoMono
+    paths:
+      - path: ../docs/assets/fonts/RobotoMono.woff2
+
+navbar-links:
+  - type: github
+    value: https://github.com/NVIDIA/JAX-Toolbox
+
+footer-links:
+  github: https://github.com/NVIDIA/JAX-Toolbox
+
+layout:
+  searchbar-placement: header
+  page-width: 1376px
+  sidebar-width: 248px
+  content-width: 812px
+  tabs-placement: header
+  hide-feedback: true
+
+css:
+  - ./main.css
+
+# Navigation tree. Each `page` path is relative to the ../docs directory.
+navigation:
+  # ==================== Getting Started ====================
+  - section: Getting Started
+    contents:
+      - page: Introduction
+        path: ../docs/getting-started/introduction.md
+      - page: Frameworks & Supported Models
+        path: ../docs/getting-started/frameworks.md
+      - page: Build Pipeline Status
+        path: ../docs/getting-started/build-status.md
+      - page: Environment Variables
+        path: ../docs/getting-started/environment-variables.md
+
+  # ==================== Frameworks ====================
+  - section: Frameworks
+    contents:
+      - section: MaxText
+        contents:
+          - page: Overview
+            path: ../docs/frameworks/maxtext/README.md
+          - page: NVFP4 Training Example
+            path: ../docs/frameworks/maxtext/nvfp4/README.md
+      - page: AXLearn
+        path: ../docs/frameworks/axlearn/README.md
+
+  # ==================== Performance & Profiling ====================
+  - section: Performance & Profiling
+    contents:
+      - page: Profiling
+        path: ../docs/profiling.md
+      - page: GPU Performance
+        path: ../docs/GPU_performance.md
+      - page: PGLE (Profile-Guided Latency Estimation)
+        path: ../docs/PGLE.md
+      - page: Native FP8
+        path: ../docs/NATIVE_FP8.md
+      - page: nsys-jax
+        path: ../docs/nsys-jax.md
+
+  # ==================== Resiliency ====================
+  - section: Resiliency
+    contents:
+      - page: Resilient JAX with Ray
+        path: ../docs/resiliency/ray_resilient_jax.md
+      - page: Example Walkthrough
+        path: ../docs/resiliency/example/run_example.md
+
+  # ==================== Inference ====================
+  - section: Inference
+    contents:
+      - page: JAX-vLLM Rollout Offloading Bridge
+        path: ../docs/inference/jax-inference-offloading.md
+
+  # ==================== Tools ====================
+  - section: Tools
+    contents:
+      - page: Triage Tool
+        path: ../docs/triage-tool.md
+
+  # ==================== Reference ====================
+  - section: Reference
+    contents:
+      - page: Container Versions
+        path: ../docs/reference/container-versions.md
+      - page: Staging Containers
+        path: ../docs/reference/staging-containers.md
+      - page: Cloud Providers
+        path: ../docs/reference/cloud-providers.md
+      - page: FAQ
+        path: ../docs/reference/faq.md
+      - page: Resources & Videos
+        path: ../docs/reference/resources.md

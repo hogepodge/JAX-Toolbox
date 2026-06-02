@@ -1,5 +1,3 @@
-[This doc is under construction]
-
 # MaxText
 [MaxText](https://github.com/google/maxtext) is high performance scalable LLM framework by Google written in Python and JAX. We support the upstream maxtext and have containers that can support the MaxText main branch out-of-the-box. While training, we strongly recommend to use propoer XLA flags pointed below.
 
@@ -55,7 +53,7 @@ python3 -m maxtext.trainers.pre_train.train \
 Currently, MaxText offers flash attention through [Transformer Engine](https://github.com/NVIDIA/TransformerEngine). In order to use flash attention, please select the proper attention type through `attention=cudnn_flash_te` argument. Additionally you need to set `export NVTE_FUSED_ATTN=1`. Also if you are interested in using `minimal` remat policy, for flash attention, please specify `remat_policy=minimal_flash`. This optionally saves the flash attention output tensor named `'context'`.
 
 #### Running a multinode job
-Please see the [example_slurm.sub](example_slurm.sub) for a multinode multiprocess job. For a single node (8 GPUs) llama2-7b run, the command should look like:
+Please see the [example_slurm.sub](https://github.com/NVIDIA/JAX-Toolbox/blob/main/docs/frameworks/maxtext/example_slurm.sub) for a multinode multiprocess job. For a single node (8 GPUs) llama2-7b run, the command should look like:
 ```
 sbatch -N 1 -A <ACCOUNT> -p <PARTITION> -J <JOBNAME> scripts/example_slurm.sub
 ```
@@ -66,7 +64,7 @@ CONTAINER=<CONTAINER> BASE_WORKSPACE_DIR=<PATH_TO_WORKSPACE> BASE_TFDS_DATA_DIR=
 In order to obtain the best performance, please set the appropriate XLA flags. We further discuss it below:
 
 ## XLA Flags
-The [GPU Performance document](GPU_performance.md) provides a detailed description of the XLA flags that can be set to optimize performance. These are the recommended XLA flags to get good performance for MaxText.
+The [GPU Performance document](../../GPU_performance.md) provides a detailed description of the XLA flags that can be set to optimize performance. These are the recommended XLA flags to get good performance for MaxText.
 
 ```
 XLA_FLAGS="--xla_gpu_enable_latency_hiding_scheduler=true
@@ -91,7 +89,7 @@ We have run some intial performance and functionality tests with [LLaMA2-7B](htt
 | ---- | ------------ | --------- | --------------- | ----- | -------- | -- | ---- | -- | --- | --------- | ------------ | ---- | ------------- | ------------- |
 | 7B   | H100 80G SXM | BF16      | 4096            | 8     | 2        | 1  | 8    | 1  | 16  | Flash     | minimal_flash| Off  | 0.721         | 22.19         |
 
-Please refer to the [example run script](scripts/example_slurm.sub) for more details. We will continue to add more models and associated performance metrics.
+Please refer to the [example run script](https://github.com/NVIDIA/JAX-Toolbox/blob/main/docs/frameworks/maxtext/example_slurm.sub) for more details. We will continue to add more models and associated performance metrics.
 
 # Notes
 1. The only changes we need to support multiprocessing is to pin tensorflow and tensorflow-text to 2.18.0 version or higher.
