@@ -127,7 +127,10 @@ rows.forEach((r, j) => {
       nodes.push(renderNode(p));
       if (p.overview && !clickable.includes(p)) clickable.push(p);
     }
-    grid.push(`<div className="eco-cell" style={{gridColumn: "${pos + 2} / span ${w}", gridRow: "${gr}"}}>\n${nodes.join("\n")}\n</div>`);
+    const inner = [];
+    if (cell.label) inner.push(`<div className="eco-cell-label">${safe(cell.label, `cell label in row ${r.id}`)}</div>`);
+    inner.push(...nodes);
+    grid.push(`<div className="eco-cell" style={{gridColumn: "${pos + 2} / span ${w}", gridRow: "${gr}"}}>\n${inner.join("\n")}\n</div>`);
     pos += w;
     cellCount++;
   }

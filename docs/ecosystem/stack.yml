@@ -60,11 +60,11 @@ rows:
   - id: ecosystem
     label: JAX ecosystem
     cells:
-      - { width: 2, projects: [xprof] }
-      - { width: 4, projects: [grain, optax, orbax, tunix, qwix, flax, pallas-mosaicgpu] }
-      - { width: 2, projects: [jaxpp, te] }
-      - { width: 2, projects: [warp, cuequivariance, cutile, cutlass] }
-      - { width: 2, projects: [flashinfer, mlir-trt] }
+      - { width: 2, label: Profiling, projects: [xprof] }
+      - { width: 3, label: Training libraries, projects: [grain, optax, orbax, tunix, qwix, flax, pallas-mosaicgpu] }
+      - { width: 3, label: Scale & precision, projects: [jaxpp, te] }
+      - { width: 2, label: Kernels, projects: [warp, cuequivariance, cutile, cutlass] }
+      - { width: 2, label: Inference, projects: [flashinfer, mlir-trt] }
 
   - id: core
     label: "JAX · XLA · Pathways"
