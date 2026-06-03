@@ -69,6 +69,8 @@ navigation:
     contents:
       - page: Introduction
         path: ../docs/getting-started/introduction.md
+      - page: JAX on NVIDIA GPU Stack
+        path: ../docs/ecosystem/jax-on-nvidia-gpu-stack.mdx
       - page: Frameworks & Supported Models
         path: ../docs/getting-started/frameworks.md
       - page: Build Pipeline Status

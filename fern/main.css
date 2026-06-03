@@ -90,3 +90,62 @@
 .fern-back-to-top:hover {
   color: var(--nv-green);
 }
+
+/* ============================================================ Ecosystem ===== */
+/* Stack-diagram styling for the "JAX on NVIDIA GPU Stack" page. Category fills
+ * use low-alpha tints (via color-mix) so they read on both light and dark themes;
+ * the colored border carries the category and node text stays default-colored
+ * for contrast. `.eco-contributes` overlays a green outline on any fill. */
+:root {
+  --jax-blue: #2f6fe0;
+  --eco-other: #6b7280;
+}
+
+.eco-wrap {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  margin: 1.25rem 0;
+}
+@media (max-width: 900px) {
+  .eco-wrap { grid-template-columns: 1fr; }
+}
+
+.eco-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.eco-node {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  text-decoration: none;
+  color: inherit;
+  border: 1.5px solid transparent;
+}
+.eco-node:hover { text-decoration: none; filter: brightness(0.97); }
+
+.eco-cat-nvidia { background: color-mix(in srgb, var(--nv-green) 14%, transparent); border-color: var(--nv-green); }
+.eco-cat-jax    { background: color-mix(in srgb, var(--jax-blue) 14%, transparent); border-color: var(--jax-blue); }
+.eco-cat-other  { background: color-mix(in srgb, var(--eco-other) 16%, transparent); border-color: var(--eco-other); }
+
+/* NVIDIA-contributes = green outline overlay; composes on top of any fill. */
+.eco-contributes { box-shadow: inset 0 0 0 2px var(--nv-green); }
+
+/* Overview panels — CSS-only :target reveal. The default panel must be the LAST
+ * sibling so the general-sibling rule below can hide it once any panel is targeted. */
+.eco-panels {
+  border-left: 2px solid color-mix(in srgb, var(--nv-green) 30%, transparent);
+  padding-left: 1rem;
+}
+.eco-panel { display: none; scroll-margin-top: 6rem; }
+.eco-panel:target { display: block; }
+.eco-panel--default { display: block; }
+.eco-panel:target ~ .eco-panel--default { display: none; }
