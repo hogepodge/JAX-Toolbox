@@ -5,10 +5,10 @@
 # scripts/build-ecosystem.mjs (see docs/ecosystem/plan.md).
 #
 # Conventions / assumptions to VERIFY (drafted from the stack diagram image):
-#   * `category` = box FILL color = origin/ownership (NVIDIA palette, no pink):
-#       nvidia = NVIDIA green   jax = JAX Blue   other = gray
-#     A few are debatable and tagged `# VERIFY` below (e.g. Tokamax, AlphaFold3
-#     are NVIDIA-green in the image but originate at Google/DeepMind).
+#   * `category` = box FILL color (NVIDIA palette, no pink):
+#       nvidia = NVIDIA green (developed OR optimized)   jax = JAX Blue   other = gray
+#     "optimized" is why Tokamax and AlphaFold3 are green even though they
+#     originate at Google/DeepMind — NVIDIA ships first-class GPU paths for both.
 #   * `nvidia_contributes: true` = a GREEN OUTLINE on the box, i.e. a JAX-native /
 #     OSS project that NVIDIA actively contributes to. Independent of fill: a
 #     JAX-Blue project can carry the green outline. Applied to the JAX-Blue boxes
@@ -99,7 +99,7 @@ projects:
     name: AlphaFold3
     column: inference
     layer: frameworks
-    category: nvidia   # VERIFY: green in image; upstream is Google DeepMind
+    category: nvidia   # green = NVIDIA-optimized (NGC AlphaFold container); upstream Google DeepMind
     href: https://github.com/google-deepmind/alphafold3
     overview: projects/alphafold3.md
   - id: nsight
@@ -228,7 +228,7 @@ projects:
     name: Tokamax
     column: training
     layer: jax-ecosystem
-    category: nvidia   # VERIFY: green in image; upstream is Google (curated kernels)
+    category: nvidia   # green = NVIDIA-optimized GPU kernels; upstream Google (curated kernels)
     href: https://github.com/google/tokamax
     overview: projects/tokamax.md
   - id: flashinfer

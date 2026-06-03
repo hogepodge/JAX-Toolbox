@@ -209,7 +209,7 @@ Any-scale distributed checkpointing for JAX, shared across TPU and GPU workflows
 
 **Tunix**
 
-_Overview coming soon._
+A JAX-native framework for post-training and alignment — supervised fine-tuning and RL methods such as PPO and DPO/RLHF. Framework-independent and runs on NVIDIA GPUs.
 
 [Learn more →](https://github.com/google/tunix)
 
@@ -221,7 +221,7 @@ _Overview coming soon._
 
 **Qwix**
 
-_Overview coming soon._
+A JAX-native quantization library (PTQ, QAT, and QLoRA). Its non-intrusive interception applies quantization without changing model code, targeting XLA on both NVIDIA GPUs and TPUs.
 
 [Learn more →](https://github.com/google/qwix)
 
@@ -257,7 +257,7 @@ Pallas is JAX's kernel-authoring API; on NVIDIA GPUs it lowers primarily to the 
 
 **JaxPP**
 
-_Overview coming soon._
+NVIDIA's pipeline-parallelism library for JAX, splitting large-model training into pipeline stages across GPUs and nodes with flexible scheduling to keep devices busy.
 
 [Learn more →](https://github.com/NVIDIA/JaxPP)
 
@@ -281,7 +281,7 @@ NVIDIA's mixed-precision training library. The JAX extension delivers FP8, MXFP8
 
 **Warp**
 
-_Overview coming soon._
+NVIDIA Warp is a Python framework for writing high-performance, differentiable GPU kernels (simulation, geometry, custom ops). Warp kernels can be called from JAX through the foreign-function interface.
 
 [Learn more →](https://github.com/NVIDIA/warp)
 
@@ -293,7 +293,7 @@ _Overview coming soon._
 
 **cuEquivariance**
 
-_Overview coming soon._
+An NVIDIA library that accelerates equivariant neural networks — common in chemistry, materials, and structural biology — with optimized primitives and JAX bindings for GPU execution.
 
 [Learn more →](https://github.com/NVIDIA/cuEquivariance)
 
@@ -305,7 +305,7 @@ _Overview coming soon._
 
 **cuTile**
 
-_Overview coming soon._
+NVIDIA's tile-based programming model for authoring GPU kernels at a higher level than raw CUDA: computation is expressed over tiles that the compiler maps onto the hardware.
 
 </div>
 </div>
@@ -463,5 +463,55 @@ Select a project in the diagram to see its overview.
 
 ## How the layers fit together
 
-_(narrative tour of Hardware → native XLA → JAX·XLA·Pathways → JAX ecosystem →
-Frameworks goes here)_
+Read the diagram bottom-up: each layer builds on the one beneath it, and the
+three columns — **Tooling**, **Training / Post-Training**, and **Inference** —
+are the workflows that cut across those layers.
+
+### Hardware
+
+At the base are **NVIDIA GPUs** — A100, H100, H200, and Blackwell. Their Tensor
+Cores execute FP8/BF16/TF32 (and, on Blackwell, NVFP4) matmuls, while **NVLink**
+and **InfiniBand** carry the gradients and activations that multi-GPU and
+multi-node training depend on.
+
+### CUDA libraries (native XLA)
+
+Just above the hardware sit the CUDA math, communication, and profiling
+libraries the compiler calls into: **cuBLAS / cuBLASLt** for GEMMs, **cuDNN**
+for convolutions and fused attention, **NCCL** for topology-aware collectives,
+**NVSHMEM** for GPU-initiated communication, and **CUPTI** for the trace data
+profilers consume. JAX never calls these directly — XLA does, on its behalf.
+
+### JAX · XLA
+
+This is the shared core. You write JAX (`jit`, `grad`, `vmap`, `pmap`); JAX
+traces your program to **StableHLO**, and **XLA:GPU** lowers it through LLVM
+NVPTX to PTX/SASS, fusing operations and dispatching the CUDA library calls
+above. OpenXLA is co-developed by NVIDIA alongside Google and others, so GPU
+support lives upstream rather than in a fork. (Pathways, shown for context, is
+Google's TPU runtime and is not part of the NVIDIA path — multi-node JAX on GPUs
+uses HPC-X/OpenMPI, Ray, or SLURM.)
+
+### JAX ecosystem
+
+On top of the core sit the libraries teams actually compose with: **Flax** for
+model authoring, **Optax** for optimizers, **Orbax** for checkpointing, and
+**Grain** for input pipelines; **Pallas / Mosaic GPU** for hand-written GPU
+kernels; and NVIDIA additions like **TransformerEngine** for FP8/NVFP4 precision
+and **JaxPP** for pipeline parallelism. Profilers — **Nsight**, **nsys-jax**,
+**XProf**, **CUPTI** — span this layer and the ones below it.
+
+### Frameworks
+
+At the top are the things you launch: **MaxText** and **MaxDiffusion** for
+scalable LLM and diffusion pre-training, **AXLearn** for large-scale models, and
+**AlphaFold3** for inference. NVIDIA tests these on GPUs and publishes
+ready-to-run containers, so the whole stack underneath them is already wired
+together.
+
+## Explore further
+
+- [Frameworks & Supported Models](../getting-started/frameworks.md) — containers and models we test
+- [GPU Performance](../GPU_performance.md) and [Environment Variables](../getting-started/environment-variables.md) — XLA/NCCL tuning
+- [Profiling](../profiling.md) and [nsys-jax](../nsys-jax.md) — measure what the stack is doing
+- [Build Pipeline Status](../getting-started/build-status.md) — the published images for each layer
