@@ -149,3 +149,60 @@
 .eco-panel:target { display: block; }
 .eco-panel--default { display: block; }
 .eco-panel:target ~ .eco-panel--default { display: none; }
+
+/* Layered grid: a row label + one cell per column; full-span layers (Hardware,
+ * core, native-XLA) stretch across all columns. Tuned for 3 columns. */
+.eco-diagram-grid {
+  display: grid;
+  grid-template-columns: max-content repeat(3, 1fr);
+  gap: 6px;
+  align-items: stretch;
+  font-size: 0.85rem;
+}
+.eco-colhead {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--nv-green) 10%, transparent);
+}
+.eco-rowlabel {
+  align-self: center;
+  text-align: right;
+  padding-right: 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.eco-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+  padding: 6px;
+  border: 1px dashed color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 6px;
+  min-height: 2.6rem;
+}
+.eco-cell--full { grid-column: 2 / -1; }
+.eco-node--static { cursor: default; }
+
+/* Legend */
+.eco-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 12px;
+  font-size: 0.75rem;
+}
+.eco-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.eco-swatch {
+  width: 16px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
+  display: inline-block;
+}
