@@ -45,6 +45,10 @@ categories:
   jax:    { label: JAX-native / OSS ecosystem,   class: eco-cat-jax }
   other:  { label: Other / runtime,              class: eco-cat-other }
 
+# Participation overlay: a blue (jax) box with a green outline = a project
+# NVIDIA participates in upstream.
+participation: { label: NVIDIA participates }
+
 # Rows, top -> bottom. Each row's `cells` flow left-to-right by unit width.
 # Defaults align cells to the columns (2 / 7 / 3); subdivide any row by
 # replacing a cell with several narrower ones (see header example).
@@ -75,7 +79,7 @@ rows:
     label: native XLA
     cells:
       - { width: 2, projects: [cupti] }
-      - { width: 10, projects: [cudnn, cublas, nccl, nvshmem] }
+      - { width: 10, label: "native XLA", projects: [cudnn, cublas, nccl, nvshmem] }
 
   - id: hardware
     label: Hardware
@@ -85,19 +89,19 @@ rows:
 # Project registry (placement is in rows[].cells[]). Static nodes (no
 # `overview`), e.g. hardware, render as non-clickable labels.
 projects:
-  - { id: maxtext,          name: MaxText,              category: jax,    href: ../frameworks/maxtext/README.md,                 overview: projects/maxtext.md }
-  - { id: maxdiffusion,     name: MaxDiffusion,         category: jax,    href: https://github.com/AI-Hypercomputer/maxdiffusion, overview: projects/maxdiffusion.md }
-  - { id: axlearn,          name: AXLearn,              category: jax,    href: ../frameworks/axlearn/README.md,                 overview: projects/axlearn.md }
+  - { id: maxtext,          name: MaxText,              category: jax,    href: ../frameworks/maxtext/README.md,                 overview: projects/maxtext.md, nvidia_participates: true }
+  - { id: maxdiffusion,     name: MaxDiffusion,         category: jax,    href: https://github.com/AI-Hypercomputer/maxdiffusion, overview: projects/maxdiffusion.md, nvidia_participates: true }
+  - { id: axlearn,          name: AXLearn,              category: jax,    href: ../frameworks/axlearn/README.md,                 overview: projects/axlearn.md, nvidia_participates: true }
   - { id: alphafold3,       name: AlphaFold3,           category: nvidia, href: https://github.com/google-deepmind/alphafold3,    overview: projects/alphafold3.md } # green = NVIDIA-optimized container; upstream Google DeepMind
   - { id: nsight,           name: Nsight,               category: nvidia, href: https://developer.nvidia.com/nsight-systems,      overview: projects/nsight.md }
   - { id: nsys-jax,         name: nsys-jax,             category: nvidia, href: ../nsys-jax.md,                                  overview: projects/nsys-jax.md }
   - { id: xprof,            name: XProf,                category: jax,    href: https://github.com/openxla/xprof,                 overview: projects/xprof.md }
   - { id: grain,            name: Grain,                category: jax,    href: https://github.com/google/grain,                 overview: projects/grain.md }
-  - { id: optax,            name: Optax,                category: jax,    href: https://github.com/google-deepmind/optax,         overview: projects/optax.md }
-  - { id: orbax,            name: Orbax,                category: jax,    href: https://github.com/google/orbax,                 overview: projects/orbax.md }
+  - { id: optax,            name: Optax,                category: jax,    href: https://github.com/google-deepmind/optax,         overview: projects/optax.md, nvidia_participates: true }
+  - { id: orbax,            name: Orbax,                category: jax,    href: https://github.com/google/orbax,                 overview: projects/orbax.md, nvidia_participates: true }
   - { id: tunix,            name: Tunix,                category: jax,    href: https://github.com/google/tunix,                 overview: projects/tunix.md }
   - { id: qwix,             name: Qwix,                 category: jax,    href: https://github.com/google/qwix,                  overview: projects/qwix.md }
-  - { id: flax,             name: Flax,                 category: jax,    href: https://github.com/google/flax,                  overview: projects/flax.md }
+  - { id: flax,             name: Flax,                 category: jax,    href: https://github.com/google/flax,                  overview: projects/flax.md, nvidia_participates: true }
   - { id: pallas-mosaicgpu, name: Pallas / Mosaic GPU,  category: jax,    href: https://docs.jax.dev/en/latest/pallas/index.html, overview: projects/pallas-mosaicgpu.md }
   - { id: jaxpp,            name: JaxPP,                category: nvidia, href: https://github.com/NVIDIA/JaxPP,                  overview: projects/jaxpp.md }
   - { id: te,               name: TransformerEngine,    category: nvidia, href: https://github.com/NVIDIA/TransformerEngine,      overview: projects/transformer-engine.md }
@@ -105,11 +109,11 @@ projects:
   - { id: cuequivariance,   name: cuEquivariance,       category: nvidia, href: https://github.com/NVIDIA/cuEquivariance,         overview: projects/cuequivariance.md }
   - { id: cutile,           name: cuTile,               category: nvidia,                                                        overview: projects/cutile.md }
   - { id: cutlass,          name: CUTLASS,              category: nvidia, href: https://github.com/NVIDIA/cutlass,                overview: projects/cutlass.md }
-  - { id: tokamax,          name: Tokamax,              category: nvidia, href: https://github.com/google/tokamax,                overview: projects/tokamax.md } # green = NVIDIA-optimized GPU kernels; upstream Google
+  - { id: tokamax,          name: Tokamax,              category: jax,    href: https://github.com/google/tokamax,                overview: projects/tokamax.md, nvidia_participates: true } # blue+outline = NVIDIA participates; upstream Google
   - { id: flashinfer,       name: FlashInfer,           category: nvidia, href: https://github.com/flashinfer-ai/flashinfer,      overview: projects/flashinfer.md }
   - { id: mlir-trt,         name: MLIR-TRT,             category: nvidia, href: https://github.com/NVIDIA/TensorRT-Incubator,     overview: projects/mlir-trt.md }
-  - { id: jax,              name: JAX,                  category: jax,    href: https://github.com/jax-ml/jax,                    overview: projects/jax.md }
-  - { id: xla,              name: XLA,                  category: jax,    href: https://github.com/openxla/xla,                   overview: projects/xla.md }
+  - { id: jax,              name: JAX,                  category: jax,    href: https://github.com/jax-ml/jax,                    overview: projects/jax.md, nvidia_participates: true }
+  - { id: xla,              name: XLA,                  category: jax,    href: https://github.com/openxla/xla,                   overview: projects/xla.md, nvidia_participates: true }
   - { id: pathways,         name: Pathways,             category: other,                                                         overview: projects/pathways.md }
   - { id: cupti,            name: CUPTI,                category: nvidia, href: https://docs.nvidia.com/cupti/,                   overview: projects/cupti.md }
   - { id: cudnn,            name: cuDNN,                category: nvidia, href: https://developer.nvidia.com/cudnn,               overview: projects/cudnn.md }

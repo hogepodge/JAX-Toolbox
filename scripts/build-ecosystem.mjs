@@ -77,6 +77,7 @@ const safe = (s, where) => {
 const catClass = (p) => categories[p.category]?.class ?? "eco-cat-other";
 const nodeClasses = (p) => {
   const cls = ["eco-node", catClass(p)];
+  if (p.nvidia_participates) cls.push("eco-participates"); // green outline overlay
   if (!p.overview) cls.push("eco-node--static");
   return cls.join(" ");
 };
@@ -88,28 +89,26 @@ const renderNode = (p) => {
 };
 
 // ----- build the grid ------------------------------------------------------
-// Track 1 = row-label column; data unit u (1-based) lives on track u+1.
+// Data unit u (1-based) lives on grid track u (no row-label column).
 // Row 1 = header row; data row j (0-based) lives on grid-row j+2.
 const used = new Set();
 const clickable = []; // ordered project objects with panels
 let cellCount = 0;
 
-const template = `max-content repeat(${U}, 1fr)`;
+const template = `repeat(${U}, 1fr)`;
 const grid = [`<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack" style={{gridTemplateColumns: "${template}"}}>`];
-grid.push(`<div className="eco-corner" style={{gridColumn: "1", gridRow: "1"}} />`);
 
 // Column headers span their unit range.
 let cu = 0;
 for (const c of columns) {
   const w = Number(c.width) || 1;
-  grid.push(`<div className="eco-colhead" style={{gridColumn: "${cu + 2} / span ${w}", gridRow: "1"}}>${safe(c.label, `column ${c.id}`)}</div>`);
+  grid.push(`<div className="eco-colhead" style={{gridColumn: "${cu + 1} / span ${w}", gridRow: "1"}}>${safe(c.label, `column ${c.id}`)}</div>`);
   cu += w;
 }
 
-// Rows: label on track 1, then cells flow left-to-right by unit width.
+// Rows: cells flow left-to-right by unit width (row grouping comes from cell labels).
 rows.forEach((r, j) => {
   const gr = j + 2;
-  grid.push(`<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "${gr}"}}>${safe(r.label ?? r.id, `row ${r.id}`)}</div>`);
   let pos = 0; // units consumed in this row
   for (const cell of r.cells ?? []) {
     let w = Number(cell.width) || 1;
@@ -130,7 +129,7 @@ rows.forEach((r, j) => {
     const inner = [];
     if (cell.label) inner.push(`<div className="eco-cell-label">${safe(cell.label, `cell label in row ${r.id}`)}</div>`);
     inner.push(...nodes);
-    grid.push(`<div className="eco-cell" style={{gridColumn: "${pos + 2} / span ${w}", gridRow: "${gr}"}}>\n${inner.join("\n")}\n</div>`);
+    grid.push(`<div className="eco-cell" style={{gridColumn: "${pos + 1} / span ${w}", gridRow: "${gr}"}}>\n${inner.join("\n")}\n</div>`);
     pos += w;
     cellCount++;
   }
@@ -163,6 +162,10 @@ const legendParts = [`<div className="eco-legend" aria-hidden="true">`];
 for (const key of Object.keys(categories)) {
   const c = categories[key];
   legendParts.push(`<span className="eco-legend-item"><span className="eco-swatch ${c.class}" />${safe(c.label, `category ${key}`)}</span>`);
+}
+if (cfg.participation) {
+  // blue swatch + green outline overlay
+  legendParts.push(`<span className="eco-legend-item"><span className="eco-swatch eco-cat-jax eco-participates" />${safe(cfg.participation.label, "participation")}</span>`);
 }
 legendParts.push(`</div>`);
 
