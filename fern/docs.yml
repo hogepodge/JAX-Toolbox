@@ -61,6 +61,7 @@ layout:
 
 css:
   - ./main.css
+  - ../docs/ecosystem/ecosystem.generated.css
 
 # Navigation tree. Each `page` path is relative to the ../docs directory.
 navigation:
