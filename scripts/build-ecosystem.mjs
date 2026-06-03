@@ -7,17 +7,18 @@
 // docs/ecosystem/jax-on-nvidia-gpu-stack.mdx (between the ECOSYSTEM markers),
 // plus docs/ecosystem/ecosystem.generated.css (selected-node highlight).
 //
-// FLEXIBLE GRID MODEL:
-//   columns (with `width` fr weights) x rows, with `cells` placed as rectangles
-//   (col/colSpan/row/rowSpan). Emitted via CSS Grid: the container sets
-//   grid-template-columns from the weights, and each cell/label/header gets an
-//   inline style={{gridColumn, gridRow}} (verified to render in Fern MDX).
+// UNIT-GRID / ROW-FLOW MODEL:
+//   columns carry a `width` in UNITS; total U = sum(widths) is the grid
+//   resolution (U equal 1fr tracks). Column headers span their unit range.
+//   Each row's `cells` FLOW left-to-right: cell i starts where i-1 ended and
+//   occupies `width` units — so a cell can straddle a column boundary. Rendered
+//   via CSS Grid with inline style={{gridColumn,gridRow}} (verified in Fern MDX).
 //
 // Design notes (validated by spikes, see docs/ecosystem/plan.md):
 //   * Emit `className`/`htmlFor` and inline `style={{...}}` objects (MDX/JSX).
-//   * Reveal is the radio :checked hack (Fern's pushState links break :target):
+//   * Reveal = radio :checked hack (Fern's pushState links break :target):
 //     node = <label> toggling a hidden radio adjacent to its panel.
-//   * Fail-soft: missing snippet / unknown project / overflowing span -> warn
+//   * Fail-soft: missing snippet / unknown project / row over-budget -> warn
 //     (and clamp/skip), never throw. Hard errors (no config / bad YAML / missing
 //     markers) exit non-zero.
 // =============================================================================
@@ -52,16 +53,14 @@ try {
 const columns = cfg.columns ?? [];
 const rows = cfg.rows ?? [];
 const categories = cfg.categories ?? {};
-const cells = cfg.cells ?? [];
 const projects = cfg.projects ?? [];
 
 if (!columns.length) die("no `columns` defined");
 if (!rows.length) die("no `rows` defined");
-if (!cells.length) die("no `cells` defined");
 if (!projects.length) die("no `projects` defined");
 
-const colIndex = new Map(columns.map((c, i) => [c.id, i]));
-const rowIndex = new Map(rows.map((r, i) => [r.id, i]));
+const U = columns.reduce((s, c) => s + (Number(c.width) || 1), 0); // total units
+
 const byId = new Map();
 for (const p of projects) {
   if (!p.id) { warn(`project with no id (name="${p.name ?? "?"}") skipped`); continue; }
@@ -69,7 +68,7 @@ for (const p of projects) {
   byId.set(p.id, p);
 }
 
-// MDX text can't contain raw { } < > — guard project/label text.
+// MDX text can't contain raw { } < > — guard label text.
 const safe = (s, where) => {
   if (/[{}<>]/.test(String(s))) warn(`unsafe char in ${where}: "${s}" (stripped)`);
   return String(s).replace(/[{}<>]/g, "");
@@ -88,58 +87,54 @@ const renderNode = (p) => {
     : `<span className="${nodeClasses(p)}">${name}</span>`;
 };
 
-// ----- place cells ---------------------------------------------------------
-// Grid lines: label column = line 1, data column i => line i+2. Header row =
-// line 1, data row j => line j+2.
+// ----- build the grid ------------------------------------------------------
+// Track 1 = row-label column; data unit u (1-based) lives on track u+1.
+// Row 1 = header row; data row j (0-based) lives on grid-row j+2.
 const used = new Set();
 const clickable = []; // ordered project objects with panels
-const cellEls = [];
+let cellCount = 0;
 
-for (const cell of cells) {
-  if (!colIndex.has(cell.col)) { warn(`cell at row "${cell.row}" has unknown col "${cell.col}" — skipped`); continue; }
-  if (!rowIndex.has(cell.row)) { warn(`cell at col "${cell.col}" has unknown row "${cell.row}" — skipped`); continue; }
-  const ci = colIndex.get(cell.col);
-  const ri = rowIndex.get(cell.row);
-  let colSpan = Number(cell.colSpan ?? 1);
-  let rowSpan = Number(cell.rowSpan ?? 1);
-  if (ci + colSpan > columns.length) {
-    warn(`cell (${cell.col},${cell.row}) colSpan ${colSpan} overflows; clamped`);
-    colSpan = columns.length - ci;
-  }
-  if (ri + rowSpan > rows.length) {
-    warn(`cell (${cell.col},${cell.row}) rowSpan ${rowSpan} overflows; clamped`);
-    rowSpan = rows.length - ri;
-  }
-  const nodes = [];
-  for (const pid of cell.projects ?? []) {
-    const p = byId.get(pid);
-    if (!p) { warn(`cell (${cell.col},${cell.row}) references unknown project "${pid}" — skipped`); continue; }
-    if (used.has(pid)) warn(`project "${pid}" placed more than once`);
-    used.add(pid);
-    nodes.push(renderNode(p));
-    if (p.overview && !clickable.includes(p)) clickable.push(p);
-  }
-  const gc = `${ci + 2} / span ${colSpan}`;
-  const gr = `${ri + 2} / span ${rowSpan}`;
-  cellEls.push(
-    `<div className="eco-cell" style={{gridColumn: "${gc}", gridRow: "${gr}"}}>\n${nodes.join("\n")}\n</div>`
-  );
-}
-
-for (const p of projects) if (p.id && !used.has(p.id)) warn(`project "${p.id}" is in the registry but not placed in any cell`);
-
-// ----- grid (container + headers + row labels + cells) ---------------------
-const template = "max-content " + columns.map((c) => `${c.width ?? 1}fr`).join(" ");
+const template = `max-content repeat(${U}, 1fr)`;
 const grid = [`<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack" style={{gridTemplateColumns: "${template}"}}>`];
 grid.push(`<div className="eco-corner" style={{gridColumn: "1", gridRow: "1"}} />`);
-columns.forEach((c, i) =>
-  grid.push(`<div className="eco-colhead" style={{gridColumn: "${i + 2}", gridRow: "1"}}>${safe(c.label, `column ${c.id}`)}</div>`)
-);
-rows.forEach((r, j) =>
-  grid.push(`<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "${j + 2}"}}>${safe(r.label, `row ${r.id}`)}</div>`)
-);
-grid.push(...cellEls);
+
+// Column headers span their unit range.
+let cu = 0;
+for (const c of columns) {
+  const w = Number(c.width) || 1;
+  grid.push(`<div className="eco-colhead" style={{gridColumn: "${cu + 2} / span ${w}", gridRow: "1"}}>${safe(c.label, `column ${c.id}`)}</div>`);
+  cu += w;
+}
+
+// Rows: label on track 1, then cells flow left-to-right by unit width.
+rows.forEach((r, j) => {
+  const gr = j + 2;
+  grid.push(`<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "${gr}"}}>${safe(r.label ?? r.id, `row ${r.id}`)}</div>`);
+  let pos = 0; // units consumed in this row
+  for (const cell of r.cells ?? []) {
+    let w = Number(cell.width) || 1;
+    if (pos + w > U) {
+      warn(`row "${r.id}" cells exceed ${U} units; clamped`);
+      w = U - pos;
+    }
+    if (w <= 0) { warn(`row "${r.id}" cell has no room left; skipped`); continue; }
+    const nodes = [];
+    for (const pid of cell.projects ?? []) {
+      const p = byId.get(pid);
+      if (!p) { warn(`row "${r.id}" references unknown project "${pid}" — skipped`); continue; }
+      if (used.has(pid)) warn(`project "${pid}" placed more than once`);
+      used.add(pid);
+      nodes.push(renderNode(p));
+      if (p.overview && !clickable.includes(p)) clickable.push(p);
+    }
+    grid.push(`<div className="eco-cell" style={{gridColumn: "${pos + 2} / span ${w}", gridRow: "${gr}"}}>\n${nodes.join("\n")}\n</div>`);
+    pos += w;
+    cellCount++;
+  }
+});
 grid.push(`</div>`);
+
+for (const p of projects) if (p.id && !used.has(p.id)) warn(`project "${p.id}" is in the registry but not placed in any row`);
 
 // ----- overview panels (radio :checked reveal; default panel LAST) ---------
 const readSnippet = (p) => {
@@ -191,8 +186,8 @@ const css = [
 writeFileSync(CSS_OUT, css);
 
 // ----- summary -------------------------------------------------------------
-console.log(`[ecosystem] ${used.size} projects placed across ${cells.length} cells (${clickable.length} with panels)`);
-console.log(`[ecosystem] grid: ${columns.length} columns (${columns.map((c) => c.width ?? 1).join("/")}) x ${rows.length} rows`);
+console.log(`[ecosystem] ${used.size} projects placed in ${cellCount} cells across ${rows.length} rows (${clickable.length} with panels)`);
+console.log(`[ecosystem] grid: ${U} units — columns ${columns.map((c) => `${c.id}=${c.width ?? 1}`).join(" / ")}`);
 console.log(`[ecosystem] wrote ${PAGE.replace(ROOT + "/", "")} and ${CSS_OUT.replace(ROOT + "/", "")}`);
 if (warnings.length) {
   console.log(`[ecosystem] ${warnings.length} warning(s):`);

@@ -18,32 +18,32 @@ fits.
 </div>
 
 <div className="eco-wrap">
-<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack" style={{gridTemplateColumns: "max-content 2fr 4fr 2fr"}}>
+<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack" style={{gridTemplateColumns: "max-content repeat(12, 1fr)"}}>
 <div className="eco-corner" style={{gridColumn: "1", gridRow: "1"}} />
-<div className="eco-colhead" style={{gridColumn: "2", gridRow: "1"}}>Tooling</div>
-<div className="eco-colhead" style={{gridColumn: "3", gridRow: "1"}}>Training / Post-Training</div>
-<div className="eco-colhead" style={{gridColumn: "4", gridRow: "1"}}>Inference</div>
+<div className="eco-colhead" style={{gridColumn: "2 / span 2", gridRow: "1"}}>Tooling</div>
+<div className="eco-colhead" style={{gridColumn: "4 / span 7", gridRow: "1"}}>Training / Post-Training</div>
+<div className="eco-colhead" style={{gridColumn: "11 / span 3", gridRow: "1"}}>Inference</div>
 <div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "2"}}>Frameworks</div>
-<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "3"}}>JAX ecosystem</div>
-<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "4"}}>JAX · XLA · Pathways</div>
-<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "5"}}>native XLA</div>
-<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "6"}}>Hardware</div>
-<div className="eco-cell" style={{gridColumn: "2 / span 1", gridRow: "2 / span 1"}}>
-<label className="eco-node eco-cat-nvidia" htmlFor="r-nsight">Nsight Systems</label>
+<div className="eco-cell" style={{gridColumn: "2 / span 2", gridRow: "2"}}>
+<label className="eco-node eco-cat-nvidia" htmlFor="r-nsight">Nsight</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nsys-jax">nsys-jax</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "3 / span 1", gridRow: "2 / span 1"}}>
+<div className="eco-cell" style={{gridColumn: "4 / span 6", gridRow: "2"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-maxtext">MaxText</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-maxdiffusion">MaxDiffusion</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-axlearn">AXLearn</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "4 / span 1", gridRow: "2 / span 1"}}>
+<div className="eco-cell" style={{gridColumn: "10 / span 2", gridRow: "2"}}>
+<label className="eco-node eco-cat-nvidia" htmlFor="r-tokamax">Tokamax</label>
+</div>
+<div className="eco-cell" style={{gridColumn: "12 / span 2", gridRow: "2"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-alphafold3">AlphaFold3</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "2 / span 1", gridRow: "3 / span 1"}}>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "3"}}>JAX ecosystem</div>
+<div className="eco-cell" style={{gridColumn: "2 / span 2", gridRow: "3"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-xprof">XProf</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "3 / span 1", gridRow: "3 / span 1"}}>
+<div className="eco-cell" style={{gridColumn: "4 / span 4", gridRow: "3"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-grain">Grain</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-optax">Optax</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-orbax">Orbax</label>
@@ -51,31 +51,39 @@ fits.
 <label className="eco-node eco-cat-jax" htmlFor="r-qwix">Qwix</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-flax">Flax</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-pallas-mosaicgpu">Pallas / Mosaic GPU</label>
+</div>
+<div className="eco-cell" style={{gridColumn: "8 / span 2", gridRow: "3"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-jaxpp">JaxPP</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-te">TransformerEngine</label>
+</div>
+<div className="eco-cell" style={{gridColumn: "10 / span 2", gridRow: "3"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-warp">Warp</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cuequivariance">cuEquivariance</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cutile">cuTile</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cutlass">CUTLASS</label>
-<label className="eco-node eco-cat-nvidia" htmlFor="r-tokamax">Tokamax</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "4 / span 1", gridRow: "3 / span 1"}}>
+<div className="eco-cell" style={{gridColumn: "12 / span 2", gridRow: "3"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-flashinfer">FlashInfer</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-mlir-trt">MLIR-TRT</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "2 / span 3", gridRow: "4 / span 1"}}>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "4"}}>JAX · XLA · Pathways</div>
+<div className="eco-cell" style={{gridColumn: "2 / span 12", gridRow: "4"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-jax">JAX</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-xla">XLA</label>
 <label className="eco-node eco-cat-other" htmlFor="r-pathways">Pathways</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "2 / span 3", gridRow: "5 / span 1"}}>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "5"}}>native XLA</div>
+<div className="eco-cell" style={{gridColumn: "2 / span 2", gridRow: "5"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cupti">CUPTI</label>
+</div>
+<div className="eco-cell" style={{gridColumn: "4 / span 10", gridRow: "5"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cudnn">cuDNN</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cublas">cuBLAS / cuBLASLt</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nccl">NCCL</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nvshmem">NVSHMEM</label>
 </div>
-<div className="eco-cell" style={{gridColumn: "2 / span 3", gridRow: "6 / span 1"}}>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "6"}}>Hardware</div>
+<div className="eco-cell" style={{gridColumn: "2 / span 12", gridRow: "6"}}>
 <span className="eco-node eco-cat-nvidia eco-node--static">Datacenter</span>
 <span className="eco-node eco-cat-nvidia eco-node--static">Workstations</span>
 <span className="eco-node eco-cat-nvidia eco-node--static">RTX series</span>
@@ -87,7 +95,7 @@ fits.
 <input className="eco-radio" type="radio" name="eco-sel" id="r-nsight" />
 <div className="eco-panel" id="proj-nsight">
 
-**Nsight Systems**
+**Nsight**
 
 NVIDIA Nsight Systems (system-wide CPU+GPU+NVLink timeline) and Nsight Compute (per-kernel roofline, memory throughput, warp efficiency), bundled in the NGC JAX container for deep GPU-side profiling.
 
@@ -140,6 +148,18 @@ A scalable JAX framework for diffusion-model training, sharing MaxText's perform
 Apple's deep-learning framework built on JAX and XLA for large-scale models such as the Fuji family. NVIDIA validates AXLearn on GPU clusters and publishes an `axlearn` container.
 
 [Learn more →](../frameworks/axlearn/README.md)
+
+</div>
+</div>
+<div className="eco-choice">
+<input className="eco-radio" type="radio" name="eco-sel" id="r-tokamax" />
+<div className="eco-panel" id="proj-tokamax">
+
+**Tokamax**
+
+A curated library of state-of-the-art custom kernels (attention and more) exposed through Pallas, with per-hardware autotuned implementations on NVIDIA GPUs.
+
+[Learn more →](https://github.com/google/tokamax)
 
 </div>
 </div>
@@ -318,18 +338,6 @@ NVIDIA's tile-based programming model for authoring GPU kernels at a higher leve
 NVIDIA's open-source CUDA templates for high-performance GEMM and convolution — a building block for custom kernels and library backends on NVIDIA GPUs.
 
 [Learn more →](https://github.com/NVIDIA/cutlass)
-
-</div>
-</div>
-<div className="eco-choice">
-<input className="eco-radio" type="radio" name="eco-sel" id="r-tokamax" />
-<div className="eco-panel" id="proj-tokamax">
-
-**Tokamax**
-
-A curated library of state-of-the-art custom kernels (attention and more) exposed through Pallas, with per-hardware autotuned implementations on NVIDIA GPUs.
-
-[Learn more →](https://github.com/google/tokamax)
 
 </div>
 </div>

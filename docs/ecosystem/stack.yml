@@ -1,43 +1,43 @@
 # ==========================================================================
-# JAX on NVIDIA-GPU Stack — flexible grid model
+# JAX on NVIDIA-GPU Stack — unit-grid / row-flow model
 # ==========================================================================
 # Source of truth for the ecosystem-overview page. Consumed by
 # scripts/build-ecosystem.mjs (see docs/ecosystem/plan.md).
 #
-# MODEL (CSS-grid-backed; supports weighted widths + 2-D spans):
-#   columns  — vertical tracks, each with a `width` weight (fr units).
-#   rows     — horizontal bands, top -> bottom (array order = visual order).
-#   cells    — placed groups of project boxes. Each cell occupies a rectangle:
-#                col      starting column id        (required)
-#                colSpan  # of columns to span      (default 1)
-#                row      starting row id           (required)
-#                rowSpan  # of rows to span          (default 1)
-#                projects ordered list of project ids shown in the cell
-#              A cell may span multiple columns (e.g. overlap Tooling+Training)
-#              and/or multiple rows. Overlapping/overflowing spans are warned
-#              about and clamped, never fatal.
-#   projects — registry only: id, name, category, href, overview. Placement
-#              lives in `cells`, NOT here.
+# MODEL (12-column-style unit grid):
+#   columns — header groupings, in order, each with a `width` in UNITS. The
+#             total units U = sum(widths) becomes the grid resolution
+#             (U equal tracks). Column headers span their unit range.
+#   rows    — horizontal bands, top -> bottom. Each row has a `label` and a
+#             `cells` list that FLOWS left-to-right: every cell takes `width`
+#             units starting where the previous one ended. A cell can therefore
+#             straddle a column boundary (e.g. width 2 landing on units 9-10
+#             crosses Training|Inference). Widths in a row may sum to < U
+#             (trailing space stays empty); > U warns and clamps.
+#   projects — registry only (id, name, category, href, overview). Placement
+#             lives in rows[].cells[].projects.
 #
-# category = box FILL color (NVIDIA palette): nvidia = green (developed OR
-# optimized), jax = JAX Blue, other = gray. "optimized" is why Tokamax and
-# AlphaFold3 are green though they originate at Google/DeepMind.
+# category = box FILL color: nvidia = green (developed OR optimized),
+# jax = JAX Blue, other = gray. "optimized" is why Tokamax/AlphaFold3 are green
+# though they originate at Google/DeepMind.
+#
+# Subdividing a row (the use case this model was built for) — with columns
+# 2 / 7 / 3 (U = 12), a row's cells of widths 2,4,2,2,2 give: one Tooling cell,
+# two Training cells, a cell straddling Training|Inference (units 9-10), and one
+# Inference cell:
+#     cells:
+#       - { width: 2, projects: [...] }
+#       - { width: 4, projects: [...] }
+#       - { width: 2, projects: [...] }
+#       - { width: 2, projects: [...] }   # straddles Training|Inference
+#       - { width: 2, projects: [...] }
 # ==========================================================================
 
-# Vertical tracks. `width` = relative fr units (Tooling/Inference narrow,
-# Training wide). Add/remove columns freely — the grid template is generated.
+# Header groupings; `width` in units. Total U = 2 + 7 + 3 = 12.
 columns:
-  - { id: tooling,   label: Tooling,                   width: 2 }
-  - { id: training,  label: Training / Post-Training,  width: 4 }
-  - { id: inference, label: Inference,                 width: 2 }
-
-# Horizontal bands, top -> bottom.
-rows:
-  - { id: frameworks,  label: Frameworks }
-  - { id: ecosystem,   label: JAX ecosystem }
-  - { id: core,        label: "JAX · XLA · Pathways" }
-  - { id: native-xla,  label: native XLA }
-  - { id: hardware,    label: Hardware }
+  - { id: tooling,   label: Tooling,                  width: 2 }
+  - { id: training,  label: Training / Post-Training,  width: 7 }
+  - { id: inference, label: Inference,                width: 3 }
 
 # Fill categories -> legend label + CSS class (colors in fern/main.css).
 categories:
@@ -45,33 +45,51 @@ categories:
   jax:    { label: JAX-native / OSS ecosystem,   class: eco-cat-jax }
   other:  { label: Other / runtime,              class: eco-cat-other }
 
-# Placement. Each cell is a rectangle on the columns x rows grid.
-cells:
-  # --- Frameworks ---
-  - { col: tooling,   row: frameworks, projects: [nsight, nsys-jax] }
-  - { col: training,  row: frameworks, projects: [maxtext, maxdiffusion, axlearn] }
-  - { col: inference, row: frameworks, projects: [alphafold3] }
-  # --- JAX ecosystem ---
-  - { col: tooling,   row: ecosystem,  projects: [xprof] }
-  - { col: training,  row: ecosystem,  projects: [grain, optax, orbax, tunix, qwix, flax, pallas-mosaicgpu, jaxpp, te, warp, cuequivariance, cutile, cutlass, tokamax] }
-  - { col: inference, row: ecosystem,  projects: [flashinfer, mlir-trt] }
-  # --- Full-width foundation bands (span all 3 columns) ---
-  - { col: tooling, colSpan: 3, row: core,       projects: [jax, xla, pathways] }
-  - { col: tooling, colSpan: 3, row: native-xla, projects: [cupti, cudnn, cublas, nccl, nvshmem] }
-  - { col: tooling, colSpan: 3, row: hardware,   projects: [hw-datacenter, hw-workstation, hw-rtx, hw-jetson] }
-  #
-  # Examples of the new flexibility (uncomment / adapt):
-  #   - { col: tooling, colSpan: 2, row: ecosystem, projects: [...] }   # overlap Tooling+Training
-  #   - { col: inference, rowSpan: 2, row: ecosystem, projects: [...] } # span two rows tall
+# Rows, top -> bottom. Each row's `cells` flow left-to-right by unit width.
+# Defaults align cells to the columns (2 / 7 / 3); subdivide any row by
+# replacing a cell with several narrower ones (see header example).
+rows:
+  - id: frameworks
+    label: Frameworks
+    cells:
+      - { width: 2, projects: [nsight, nsys-jax] }
+      - { width: 6, projects: [maxtext, maxdiffusion, axlearn] }
+      - { width: 2, projects: [tokamax] }
+      - { width: 2, projects: [alphafold3] }
 
-# Project registry (placement is in `cells`). Static nodes (no `overview`),
-# e.g. hardware, render as non-clickable labels.
+  - id: ecosystem
+    label: JAX ecosystem
+    cells:
+      - { width: 2, projects: [xprof] }
+      - { width: 4, projects: [grain, optax, orbax, tunix, qwix, flax, pallas-mosaicgpu] }
+      - { width: 2, projects: [jaxpp, te] }
+      - { width: 2, projects: [warp, cuequivariance, cutile, cutlass] }
+      - { width: 2, projects: [flashinfer, mlir-trt] }
+
+  - id: core
+    label: "JAX · XLA · Pathways"
+    cells:
+      - { width: 12, projects: [jax, xla, pathways] }
+
+  - id: native-xla
+    label: native XLA
+    cells:
+      - { width: 2, projects: [cupti] }
+      - { width: 10, projects: [cudnn, cublas, nccl, nvshmem] }
+
+  - id: hardware
+    label: Hardware
+    cells:
+      - { width: 12, projects: [hw-datacenter, hw-workstation, hw-rtx, hw-jetson] }
+
+# Project registry (placement is in rows[].cells[]). Static nodes (no
+# `overview`), e.g. hardware, render as non-clickable labels.
 projects:
   - { id: maxtext,          name: MaxText,              category: jax,    href: ../frameworks/maxtext/README.md,                 overview: projects/maxtext.md }
   - { id: maxdiffusion,     name: MaxDiffusion,         category: jax,    href: https://github.com/AI-Hypercomputer/maxdiffusion, overview: projects/maxdiffusion.md }
   - { id: axlearn,          name: AXLearn,              category: jax,    href: ../frameworks/axlearn/README.md,                 overview: projects/axlearn.md }
   - { id: alphafold3,       name: AlphaFold3,           category: nvidia, href: https://github.com/google-deepmind/alphafold3,    overview: projects/alphafold3.md } # green = NVIDIA-optimized container; upstream Google DeepMind
-  - { id: nsight,           name: Nsight Systems,       category: nvidia, href: https://developer.nvidia.com/nsight-systems,      overview: projects/nsight.md }
+  - { id: nsight,           name: Nsight,               category: nvidia, href: https://developer.nvidia.com/nsight-systems,      overview: projects/nsight.md }
   - { id: nsys-jax,         name: nsys-jax,             category: nvidia, href: ../nsys-jax.md,                                  overview: projects/nsys-jax.md }
   - { id: xprof,            name: XProf,                category: jax,    href: https://github.com/openxla/xprof,                 overview: projects/xprof.md }
   - { id: grain,            name: Grain,                category: jax,    href: https://github.com/google/grain,                 overview: projects/grain.md }

@@ -178,7 +178,8 @@ label.eco-node { cursor: pointer; }
   flex-wrap: wrap;
   gap: 4px;
   justify-content: center;
-  align-content: flex-start;
+  align-content: center;
+  align-items: center;
   padding: 4px;
   border: 1px dashed color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 2px;
