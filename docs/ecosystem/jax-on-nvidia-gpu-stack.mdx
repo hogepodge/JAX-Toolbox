@@ -18,29 +18,32 @@ fits.
 </div>
 
 <div className="eco-wrap">
-<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack">
-<div className="eco-corner" />
-<div className="eco-colhead">Tooling</div>
-<div className="eco-colhead">Training / Post-Training</div>
-<div className="eco-colhead">Inference</div>
-<div className="eco-rowlabel">Frameworks</div>
-<div className="eco-cell">
+<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack" style={{gridTemplateColumns: "max-content 2fr 4fr 2fr"}}>
+<div className="eco-corner" style={{gridColumn: "1", gridRow: "1"}} />
+<div className="eco-colhead" style={{gridColumn: "2", gridRow: "1"}}>Tooling</div>
+<div className="eco-colhead" style={{gridColumn: "3", gridRow: "1"}}>Training / Post-Training</div>
+<div className="eco-colhead" style={{gridColumn: "4", gridRow: "1"}}>Inference</div>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "2"}}>Frameworks</div>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "3"}}>JAX ecosystem</div>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "4"}}>JAX · XLA · Pathways</div>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "5"}}>native XLA</div>
+<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "6"}}>Hardware</div>
+<div className="eco-cell" style={{gridColumn: "2 / span 1", gridRow: "2 / span 1"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nsight">Nsight Systems</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nsys-jax">nsys-jax</label>
 </div>
-<div className="eco-cell">
+<div className="eco-cell" style={{gridColumn: "3 / span 1", gridRow: "2 / span 1"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-maxtext">MaxText</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-maxdiffusion">MaxDiffusion</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-axlearn">AXLearn</label>
 </div>
-<div className="eco-cell">
+<div className="eco-cell" style={{gridColumn: "4 / span 1", gridRow: "2 / span 1"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-alphafold3">AlphaFold3</label>
 </div>
-<div className="eco-rowlabel">JAX ecosystem</div>
-<div className="eco-cell">
+<div className="eco-cell" style={{gridColumn: "2 / span 1", gridRow: "3 / span 1"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-xprof">XProf</label>
 </div>
-<div className="eco-cell">
+<div className="eco-cell" style={{gridColumn: "3 / span 1", gridRow: "3 / span 1"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-grain">Grain</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-optax">Optax</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-orbax">Orbax</label>
@@ -56,26 +59,23 @@ fits.
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cutlass">CUTLASS</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-tokamax">Tokamax</label>
 </div>
-<div className="eco-cell">
+<div className="eco-cell" style={{gridColumn: "4 / span 1", gridRow: "3 / span 1"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-flashinfer">FlashInfer</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-mlir-trt">MLIR-TRT</label>
 </div>
-<div className="eco-rowlabel">JAX · XLA · Pathways</div>
-<div className="eco-cell eco-cell--full">
+<div className="eco-cell" style={{gridColumn: "2 / span 3", gridRow: "4 / span 1"}}>
 <label className="eco-node eco-cat-jax" htmlFor="r-jax">JAX</label>
 <label className="eco-node eco-cat-jax" htmlFor="r-xla">XLA</label>
 <label className="eco-node eco-cat-other" htmlFor="r-pathways">Pathways</label>
 </div>
-<div className="eco-rowlabel">native XLA</div>
-<div className="eco-cell eco-cell--full">
+<div className="eco-cell" style={{gridColumn: "2 / span 3", gridRow: "5 / span 1"}}>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cupti">CUPTI</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cudnn">cuDNN</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-cublas">cuBLAS / cuBLASLt</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nccl">NCCL</label>
 <label className="eco-node eco-cat-nvidia" htmlFor="r-nvshmem">NVSHMEM</label>
 </div>
-<div className="eco-rowlabel">Hardware</div>
-<div className="eco-cell eco-cell--full">
+<div className="eco-cell" style={{gridColumn: "2 / span 3", gridRow: "6 / span 1"}}>
 <span className="eco-node eco-cat-nvidia eco-node--static">Datacenter</span>
 <span className="eco-node eco-cat-nvidia eco-node--static">Workstations</span>
 <span className="eco-node eco-cat-nvidia eco-node--static">RTX series</span>
@@ -83,6 +83,30 @@ fits.
 </div>
 </div>
 <div className="eco-panels">
+<div className="eco-choice">
+<input className="eco-radio" type="radio" name="eco-sel" id="r-nsight" />
+<div className="eco-panel" id="proj-nsight">
+
+**Nsight Systems**
+
+NVIDIA Nsight Systems (system-wide CPU+GPU+NVLink timeline) and Nsight Compute (per-kernel roofline, memory throughput, warp efficiency), bundled in the NGC JAX container for deep GPU-side profiling.
+
+[Learn more →](https://developer.nvidia.com/nsight-systems)
+
+</div>
+</div>
+<div className="eco-choice">
+<input className="eco-radio" type="radio" name="eco-sel" id="r-nsys-jax" />
+<div className="eco-panel" id="proj-nsys-jax">
+
+**nsys-jax**
+
+A JAX-Toolbox wrapper around Nsight Systems that captures and post-processes profiles of JAX programs, aligning XLA/HLO with GPU timelines.
+
+[Learn more →](../nsys-jax.md)
+
+</div>
+</div>
 <div className="eco-choice">
 <input className="eco-radio" type="radio" name="eco-sel" id="r-maxtext" />
 <div className="eco-panel" id="proj-maxtext">
@@ -128,30 +152,6 @@ Apple's deep-learning framework built on JAX and XLA for large-scale models such
 DeepMind's protein-structure model. NVIDIA provides an optimized inference container (`ghcr.io/nvidia/jax:alphafold`) for running AlphaFold3 on GPUs.
 
 [Learn more →](https://github.com/google-deepmind/alphafold3)
-
-</div>
-</div>
-<div className="eco-choice">
-<input className="eco-radio" type="radio" name="eco-sel" id="r-nsight" />
-<div className="eco-panel" id="proj-nsight">
-
-**Nsight Systems**
-
-NVIDIA Nsight Systems (system-wide CPU+GPU+NVLink timeline) and Nsight Compute (per-kernel roofline, memory throughput, warp efficiency), bundled in the NGC JAX container for deep GPU-side profiling.
-
-[Learn more →](https://developer.nvidia.com/nsight-systems)
-
-</div>
-</div>
-<div className="eco-choice">
-<input className="eco-radio" type="radio" name="eco-sel" id="r-nsys-jax" />
-<div className="eco-panel" id="proj-nsys-jax">
-
-**nsys-jax**
-
-A JAX-Toolbox wrapper around Nsight Systems that captures and post-processes profiles of JAX programs, aligning XLA/HLO with GPU timelines.
-
-[Learn more →](../nsys-jax.md)
 
 </div>
 </div>

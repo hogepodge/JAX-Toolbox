@@ -1,333 +1,104 @@
 # ==========================================================================
-# JAX on NVIDIA-GPU Stack — diagram structure + project registry
+# JAX on NVIDIA-GPU Stack — flexible grid model
 # ==========================================================================
 # Source of truth for the ecosystem-overview page. Consumed by
 # scripts/build-ecosystem.mjs (see docs/ecosystem/plan.md).
 #
-# Conventions / assumptions to VERIFY (drafted from the stack diagram image):
-#   * `category` = box FILL color (NVIDIA palette, no pink):
-#       nvidia = NVIDIA green (developed OR optimized)   jax = JAX Blue   other = gray
-#     "optimized" is why Tokamax and AlphaFold3 are green even though they
-#     originate at Google/DeepMind — NVIDIA ships first-class GPU paths for both.
-#   * `nvidia_contributes: true` = a GREEN OUTLINE on the box, i.e. a JAX-native /
-#     OSS project that NVIDIA actively contributes to. Independent of fill: a
-#     JAX-Blue project can carry the green outline. Applied to the JAX-Blue boxes
-#     below; VERIFY the exact set against the diagram.
-#   * The image's "native JAX" and "JAX compatible" regions are merged into a
-#     single `jax-ecosystem` layer for v1 (see plan §15). Split later if wanted.
-#   * Full-width layers (core, native-xla, hardware) span all columns; their
-#     `column` is only used for left→right ordering within the band.
-#   * `overview` snippet files don't exist yet — the generator emits a graceful
-#     "coming soon" placeholder + warning until they're authored (plan §7).
+# MODEL (CSS-grid-backed; supports weighted widths + 2-D spans):
+#   columns  — vertical tracks, each with a `width` weight (fr units).
+#   rows     — horizontal bands, top -> bottom (array order = visual order).
+#   cells    — placed groups of project boxes. Each cell occupies a rectangle:
+#                col      starting column id        (required)
+#                colSpan  # of columns to span      (default 1)
+#                row      starting row id           (required)
+#                rowSpan  # of rows to span          (default 1)
+#                projects ordered list of project ids shown in the cell
+#              A cell may span multiple columns (e.g. overlap Tooling+Training)
+#              and/or multiple rows. Overlapping/overflowing spans are warned
+#              about and clamped, never fatal.
+#   projects — registry only: id, name, category, href, overview. Placement
+#              lives in `cells`, NOT here.
+#
+# category = box FILL color (NVIDIA palette): nvidia = green (developed OR
+# optimized), jax = JAX Blue, other = gray. "optimized" is why Tokamax and
+# AlphaFold3 are green though they originate at Google/DeepMind.
 # ==========================================================================
 
-# Columns rendered left → right.
+# Vertical tracks. `width` = relative fr units (Tooling/Inference narrow,
+# Training wide). Add/remove columns freely — the grid template is generated.
 columns:
-  - id: tooling
-    label: Tooling
-  - id: training
-    label: Training / Post-Training
-  - id: inference
-    label: Inference
+  - { id: tooling,   label: Tooling,                   width: 2 }
+  - { id: training,  label: Training / Post-Training,  width: 4 }
+  - { id: inference, label: Inference,                 width: 2 }
 
-# Layers rendered bottom → top (array order = vertical position, bottom first).
-layers:
-  - id: hardware
-    label: Hardware
-    span: full
-  - id: native-xla
-    label: native XLA
-    span: full
-  - id: core
-    label: JAX · XLA · Pathways
-    span: full
-  - id: jax-ecosystem
-    label: JAX ecosystem
-  - id: frameworks
-    label: Frameworks
+# Horizontal bands, top -> bottom.
+rows:
+  - { id: frameworks,  label: Frameworks }
+  - { id: ecosystem,   label: JAX ecosystem }
+  - { id: core,        label: "JAX · XLA · Pathways" }
+  - { id: native-xla,  label: native XLA }
+  - { id: hardware,    label: Hardware }
 
-# Category → legend label + CSS class (fill colors defined in fern/main.css).
+# Fill categories -> legend label + CSS class (colors in fern/main.css).
 categories:
-  nvidia:
-    label: NVIDIA-developed / optimized
-    class: eco-cat-nvidia
-  jax:
-    label: JAX-native / OSS ecosystem
-    class: eco-cat-jax
-  other:
-    label: Other / runtime
-    class: eco-cat-other
+  nvidia: { label: NVIDIA-developed / optimized, class: eco-cat-nvidia }
+  jax:    { label: JAX-native / OSS ecosystem,   class: eco-cat-jax }
+  other:  { label: Other / runtime,              class: eco-cat-other }
 
-# The `nvidia_contributes: true` flag renders as a green outline (CSS class
-# eco-contributes) and gets its own legend entry:
-contribution:
-  label: NVIDIA contributes (green outline)
-  class: eco-contributes
+# Placement. Each cell is a rectangle on the columns x rows grid.
+cells:
+  # --- Frameworks ---
+  - { col: tooling,   row: frameworks, projects: [nsight, nsys-jax] }
+  - { col: training,  row: frameworks, projects: [maxtext, maxdiffusion, axlearn] }
+  - { col: inference, row: frameworks, projects: [alphafold3] }
+  # --- JAX ecosystem ---
+  - { col: tooling,   row: ecosystem,  projects: [xprof] }
+  - { col: training,  row: ecosystem,  projects: [grain, optax, orbax, tunix, qwix, flax, pallas-mosaicgpu, jaxpp, te, warp, cuequivariance, cutile, cutlass, tokamax] }
+  - { col: inference, row: ecosystem,  projects: [flashinfer, mlir-trt] }
+  # --- Full-width foundation bands (span all 3 columns) ---
+  - { col: tooling, colSpan: 3, row: core,       projects: [jax, xla, pathways] }
+  - { col: tooling, colSpan: 3, row: native-xla, projects: [cupti, cudnn, cublas, nccl, nvshmem] }
+  - { col: tooling, colSpan: 3, row: hardware,   projects: [hw-datacenter, hw-workstation, hw-rtx, hw-jetson] }
+  #
+  # Examples of the new flexibility (uncomment / adapt):
+  #   - { col: tooling, colSpan: 2, row: ecosystem, projects: [...] }   # overlap Tooling+Training
+  #   - { col: inference, rowSpan: 2, row: ecosystem, projects: [...] } # span two rows tall
 
-# --------------------------------------------------------------------------
-# Projects. Grouped by layer (top → bottom) for readability only; the
-# generator re-orders by layers[] then columns[] then list order.
-# --------------------------------------------------------------------------
+# Project registry (placement is in `cells`). Static nodes (no `overview`),
+# e.g. hardware, render as non-clickable labels.
 projects:
-
-  # ---- Frameworks (top layer) -------------------------------------------
-  - id: maxtext
-    name: MaxText
-    column: training
-    layer: frameworks
-    category: jax
-    nvidia_contributes: true
-    href: ../frameworks/maxtext/README.md
-    overview: projects/maxtext.md
-  - id: maxdiffusion
-    name: MaxDiffusion
-    column: training
-    layer: frameworks
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/AI-Hypercomputer/maxdiffusion
-    overview: projects/maxdiffusion.md
-  - id: axlearn
-    name: AXLearn
-    column: training
-    layer: frameworks
-    category: jax
-    nvidia_contributes: true
-    href: ../frameworks/axlearn/README.md
-    overview: projects/axlearn.md
-  - id: alphafold3
-    name: AlphaFold3
-    column: inference
-    layer: frameworks
-    category: nvidia   # green = NVIDIA-optimized (NGC AlphaFold container); upstream Google DeepMind
-    href: https://github.com/google-deepmind/alphafold3
-    overview: projects/alphafold3.md
-  - id: nsight
-    name: Nsight Systems
-    column: tooling
-    layer: frameworks
-    category: nvidia
-    href: https://developer.nvidia.com/nsight-systems
-    overview: projects/nsight.md
-  - id: nsys-jax
-    name: nsys-jax
-    column: tooling
-    layer: frameworks
-    category: nvidia
-    href: ../nsys-jax.md
-    overview: projects/nsys-jax.md
-
-  # ---- JAX ecosystem (native JAX + JAX-compatible, merged) ---------------
-  - id: xprof
-    name: XProf
-    column: tooling
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/openxla/xprof
-    overview: projects/xprof.md
-  - id: grain
-    name: Grain
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/google/grain
-    overview: projects/grain.md
-  - id: optax
-    name: Optax
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/google-deepmind/optax
-    overview: projects/optax.md
-  - id: orbax
-    name: Orbax
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/google/orbax
-    overview: projects/orbax.md
-  - id: tunix
-    name: Tunix
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/google/tunix
-    overview: projects/tunix.md
-  - id: qwix
-    name: Qwix
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/google/qwix
-    overview: projects/qwix.md
-  - id: flax
-    name: Flax
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/google/flax
-    overview: projects/flax.md
-  - id: pallas-mosaicgpu
-    name: Pallas / Mosaic GPU
-    column: training
-    layer: jax-ecosystem
-    category: jax
-    nvidia_contributes: true
-    href: https://docs.jax.dev/en/latest/pallas/index.html
-    overview: projects/pallas-mosaicgpu.md
-  - id: jaxpp
-    name: JaxPP
-    column: training
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/NVIDIA/JaxPP
-    overview: projects/jaxpp.md
-  - id: te
-    name: TransformerEngine
-    column: training
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/NVIDIA/TransformerEngine
-    overview: projects/transformer-engine.md
-  - id: warp
-    name: Warp
-    column: training
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/NVIDIA/warp
-    overview: projects/warp.md
-  - id: cuequivariance
-    name: cuEquivariance
-    column: training
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/NVIDIA/cuEquivariance
-    overview: projects/cuequivariance.md
-  - id: cutile
-    name: cuTile
-    column: training
-    layer: jax-ecosystem
-    category: nvidia
-    # href: TBD — no stable public repo yet
-    overview: projects/cutile.md
-  - id: cutlass
-    name: CUTLASS
-    column: training
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/NVIDIA/cutlass
-    overview: projects/cutlass.md
-  - id: tokamax
-    name: Tokamax
-    column: training
-    layer: jax-ecosystem
-    category: nvidia   # green = NVIDIA-optimized GPU kernels; upstream Google (curated kernels)
-    href: https://github.com/google/tokamax
-    overview: projects/tokamax.md
-  - id: flashinfer
-    name: FlashInfer
-    column: inference
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/flashinfer-ai/flashinfer
-    overview: projects/flashinfer.md
-  - id: mlir-trt
-    name: MLIR-TRT
-    column: inference
-    layer: jax-ecosystem
-    category: nvidia
-    href: https://github.com/NVIDIA/TensorRT-Incubator
-    overview: projects/mlir-trt.md
-
-  # ---- Core (full-width band) -------------------------------------------
-  - id: jax
-    name: JAX
-    column: training
-    layer: core
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/jax-ml/jax
-    overview: projects/jax.md
-  - id: xla
-    name: XLA
-    column: training
-    layer: core
-    category: jax
-    nvidia_contributes: true
-    href: https://github.com/openxla/xla
-    overview: projects/xla.md
-  - id: pathways
-    name: Pathways
-    column: inference
-    layer: core
-    category: other
-    # href: proprietary Google runtime; no public repo
-    overview: projects/pathways.md
-
-  # ---- native XLA (full-width band) -------------------------------------
-  - id: cupti
-    name: CUPTI
-    column: tooling
-    layer: native-xla
-    category: nvidia
-    href: https://docs.nvidia.com/cupti/
-    overview: projects/cupti.md
-  - id: cudnn
-    name: cuDNN
-    column: training
-    layer: native-xla
-    category: nvidia
-    href: https://developer.nvidia.com/cudnn
-    overview: projects/cudnn.md
-  - id: cublas
-    name: cuBLAS / cuBLASLt
-    column: training
-    layer: native-xla
-    category: nvidia
-    href: https://developer.nvidia.com/cublas
-    overview: projects/cublas.md
-  - id: nccl
-    name: NCCL
-    column: training
-    layer: native-xla
-    category: nvidia
-    href: https://developer.nvidia.com/nccl
-    overview: projects/nccl.md
-  - id: nvshmem
-    name: NVSHMEM
-    column: inference
-    layer: native-xla
-    category: nvidia
-    href: https://developer.nvidia.com/nvshmem
-    overview: projects/nvshmem.md
-
-  # ---- Hardware (full-width band) ---------------------------------------
-  # NOTE: open question (plan §15) — render as a non-clickable labeled band,
-  # or as clickable nodes? Listed as nodes here; no href/overview by default.
-  - id: hw-datacenter
-    name: Datacenter
-    column: training
-    layer: hardware
-    category: nvidia
-  - id: hw-workstation
-    name: Workstations
-    column: training
-    layer: hardware
-    category: nvidia
-  - id: hw-rtx
-    name: RTX series
-    column: training
-    layer: hardware
-    category: nvidia
-  - id: hw-jetson
-    name: Jetson
-    column: inference
-    layer: hardware
-    category: nvidia
+  - { id: maxtext,          name: MaxText,              category: jax,    href: ../frameworks/maxtext/README.md,                 overview: projects/maxtext.md }
+  - { id: maxdiffusion,     name: MaxDiffusion,         category: jax,    href: https://github.com/AI-Hypercomputer/maxdiffusion, overview: projects/maxdiffusion.md }
+  - { id: axlearn,          name: AXLearn,              category: jax,    href: ../frameworks/axlearn/README.md,                 overview: projects/axlearn.md }
+  - { id: alphafold3,       name: AlphaFold3,           category: nvidia, href: https://github.com/google-deepmind/alphafold3,    overview: projects/alphafold3.md } # green = NVIDIA-optimized container; upstream Google DeepMind
+  - { id: nsight,           name: Nsight Systems,       category: nvidia, href: https://developer.nvidia.com/nsight-systems,      overview: projects/nsight.md }
+  - { id: nsys-jax,         name: nsys-jax,             category: nvidia, href: ../nsys-jax.md,                                  overview: projects/nsys-jax.md }
+  - { id: xprof,            name: XProf,                category: jax,    href: https://github.com/openxla/xprof,                 overview: projects/xprof.md }
+  - { id: grain,            name: Grain,                category: jax,    href: https://github.com/google/grain,                 overview: projects/grain.md }
+  - { id: optax,            name: Optax,                category: jax,    href: https://github.com/google-deepmind/optax,         overview: projects/optax.md }
+  - { id: orbax,            name: Orbax,                category: jax,    href: https://github.com/google/orbax,                 overview: projects/orbax.md }
+  - { id: tunix,            name: Tunix,                category: jax,    href: https://github.com/google/tunix,                 overview: projects/tunix.md }
+  - { id: qwix,             name: Qwix,                 category: jax,    href: https://github.com/google/qwix,                  overview: projects/qwix.md }
+  - { id: flax,             name: Flax,                 category: jax,    href: https://github.com/google/flax,                  overview: projects/flax.md }
+  - { id: pallas-mosaicgpu, name: Pallas / Mosaic GPU,  category: jax,    href: https://docs.jax.dev/en/latest/pallas/index.html, overview: projects/pallas-mosaicgpu.md }
+  - { id: jaxpp,            name: JaxPP,                category: nvidia, href: https://github.com/NVIDIA/JaxPP,                  overview: projects/jaxpp.md }
+  - { id: te,               name: TransformerEngine,    category: nvidia, href: https://github.com/NVIDIA/TransformerEngine,      overview: projects/transformer-engine.md }
+  - { id: warp,             name: Warp,                 category: nvidia, href: https://github.com/NVIDIA/warp,                   overview: projects/warp.md }
+  - { id: cuequivariance,   name: cuEquivariance,       category: nvidia, href: https://github.com/NVIDIA/cuEquivariance,         overview: projects/cuequivariance.md }
+  - { id: cutile,           name: cuTile,               category: nvidia,                                                        overview: projects/cutile.md }
+  - { id: cutlass,          name: CUTLASS,              category: nvidia, href: https://github.com/NVIDIA/cutlass,                overview: projects/cutlass.md }
+  - { id: tokamax,          name: Tokamax,              category: nvidia, href: https://github.com/google/tokamax,                overview: projects/tokamax.md } # green = NVIDIA-optimized GPU kernels; upstream Google
+  - { id: flashinfer,       name: FlashInfer,           category: nvidia, href: https://github.com/flashinfer-ai/flashinfer,      overview: projects/flashinfer.md }
+  - { id: mlir-trt,         name: MLIR-TRT,             category: nvidia, href: https://github.com/NVIDIA/TensorRT-Incubator,     overview: projects/mlir-trt.md }
+  - { id: jax,              name: JAX,                  category: jax,    href: https://github.com/jax-ml/jax,                    overview: projects/jax.md }
+  - { id: xla,              name: XLA,                  category: jax,    href: https://github.com/openxla/xla,                   overview: projects/xla.md }
+  - { id: pathways,         name: Pathways,             category: other,                                                         overview: projects/pathways.md }
+  - { id: cupti,            name: CUPTI,                category: nvidia, href: https://docs.nvidia.com/cupti/,                   overview: projects/cupti.md }
+  - { id: cudnn,            name: cuDNN,                category: nvidia, href: https://developer.nvidia.com/cudnn,               overview: projects/cudnn.md }
+  - { id: cublas,           name: cuBLAS / cuBLASLt,    category: nvidia, href: https://developer.nvidia.com/cublas,              overview: projects/cublas.md }
+  - { id: nccl,             name: NCCL,                 category: nvidia, href: https://developer.nvidia.com/nccl,                overview: projects/nccl.md }
+  - { id: nvshmem,          name: NVSHMEM,              category: nvidia, href: https://developer.nvidia.com/nvshmem,             overview: projects/nvshmem.md }
+  - { id: hw-datacenter,    name: Datacenter,           category: nvidia }
+  - { id: hw-workstation,   name: Workstations,         category: nvidia }
+  - { id: hw-rtx,           name: RTX series,           category: nvidia }
+  - { id: hw-jetson,        name: Jetson,               category: nvidia }

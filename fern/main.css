@@ -146,11 +146,11 @@
 .eco-panels:has(.eco-radio:checked) .eco-panel--default { display: none; }
 label.eco-node { cursor: pointer; }
 
-/* Layered grid: a row label + one cell per column; full-span layers (Hardware,
- * core, native-XLA) stretch across all columns. Tuned for 3 columns. */
+/* Flexible grid: a row-label column plus weighted data columns. The actual
+ * grid-template-columns (from column `width` units) and every cell's
+ * grid-column/grid-row span are emitted inline by the generator. */
 .eco-diagram-grid {
   display: grid;
-  grid-template-columns: max-content repeat(3, 1fr);
   gap: 4px;
   align-items: stretch;
   font-size: 0.78rem;
@@ -184,7 +184,6 @@ label.eco-node { cursor: pointer; }
   border-radius: 2px;
   min-height: 1.8rem;
 }
-.eco-cell--full { grid-column: 2 / -1; }
 .eco-node--static { cursor: default; }
 
 /* Legend */

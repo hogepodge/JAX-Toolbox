@@ -3,20 +3,23 @@
 // build-ecosystem.mjs — compile the JAX-on-NVIDIA-GPU stack diagram.
 //
 // Reads docs/ecosystem/stack.yml + per-project markdown snippets and renders a
-// CSS-only, MDX-safe interactive diagram (grid of layers x columns of nodes +
-// :target-revealed overview panels + legend) into
-// docs/ecosystem/jax-on-nvidia-gpu-stack.mdx, between the ECOSYSTEM:START/END
-// markers. Prose outside the markers is never touched.
+// CSS-only, MDX-safe interactive diagram into
+// docs/ecosystem/jax-on-nvidia-gpu-stack.mdx (between the ECOSYSTEM markers),
+// plus docs/ecosystem/ecosystem.generated.css (selected-node highlight).
 //
-// Design notes (validated by the MDX spike, see docs/ecosystem/plan.md):
-//   * Emit `className` (MDX) — Fern renders it to `class`.
-//   * Node anchors use in-page `#proj-<id>` hrefs; the `.eco-panel:target` CSS
-//     rule reveals the matching panel. Fern rewrites the hash to /page#id.
-//   * Panel bodies are emitted as raw markdown wrapped in blank lines inside the
-//     JSX <div>, so MDX renders them — snippets stay pure markdown, no md->html.
-//   * Fail-soft: missing snippet -> placeholder + warning; unknown
-//     column/layer -> warning + skip; never throws on content problems. Hard
-//     errors (no config / bad YAML / missing markers) exit non-zero.
+// FLEXIBLE GRID MODEL:
+//   columns (with `width` fr weights) x rows, with `cells` placed as rectangles
+//   (col/colSpan/row/rowSpan). Emitted via CSS Grid: the container sets
+//   grid-template-columns from the weights, and each cell/label/header gets an
+//   inline style={{gridColumn, gridRow}} (verified to render in Fern MDX).
+//
+// Design notes (validated by spikes, see docs/ecosystem/plan.md):
+//   * Emit `className`/`htmlFor` and inline `style={{...}}` objects (MDX/JSX).
+//   * Reveal is the radio :checked hack (Fern's pushState links break :target):
+//     node = <label> toggling a hidden radio adjacent to its panel.
+//   * Fail-soft: missing snippet / unknown project / overflowing span -> warn
+//     (and clamp/skip), never throw. Hard errors (no config / bad YAML / missing
+//     markers) exit non-zero.
 // =============================================================================
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -28,6 +31,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ECO_DIR = join(ROOT, "docs", "ecosystem");
 const CONFIG = join(ECO_DIR, "stack.yml");
 const PAGE = join(ECO_DIR, "jax-on-nvidia-gpu-stack.mdx");
+const CSS_OUT = join(ECO_DIR, "ecosystem.generated.css");
 
 const warnings = [];
 const warn = (m) => warnings.push(m);
@@ -46,55 +50,37 @@ try {
 }
 
 const columns = cfg.columns ?? [];
-const layers = cfg.layers ?? [];
+const rows = cfg.rows ?? [];
 const categories = cfg.categories ?? {};
-const contribution = cfg.contribution ?? null;
+const cells = cfg.cells ?? [];
 const projects = cfg.projects ?? [];
 
 if (!columns.length) die("no `columns` defined");
-if (!layers.length) die("no `layers` defined");
+if (!rows.length) die("no `rows` defined");
+if (!cells.length) die("no `cells` defined");
 if (!projects.length) die("no `projects` defined");
-if (columns.length !== 3)
-  warn(`CSS grid is tuned for 3 columns; found ${columns.length} (adjust .eco-diagram-grid in main.css)`);
 
-const colIds = columns.map((c) => c.id);
-const layerById = new Map(layers.map((l) => [l.id, l]));
+const colIndex = new Map(columns.map((c, i) => [c.id, i]));
+const rowIndex = new Map(rows.map((r, i) => [r.id, i]));
+const byId = new Map();
+for (const p of projects) {
+  if (!p.id) { warn(`project with no id (name="${p.name ?? "?"}") skipped`); continue; }
+  if (byId.has(p.id)) { warn(`duplicate project id "${p.id}" in registry`); continue; }
+  byId.set(p.id, p);
+}
 
-// MDX text can't contain raw { } < > — guard project names.
+// MDX text can't contain raw { } < > — guard project/label text.
 const safe = (s, where) => {
-  if (/[{}<>]/.test(s)) warn(`unsafe char in ${where}: "${s}" (stripped)`);
+  if (/[{}<>]/.test(String(s))) warn(`unsafe char in ${where}: "${s}" (stripped)`);
   return String(s).replace(/[{}<>]/g, "");
 };
 
-// ----- validate + index projects ------------------------------------------
-const seen = new Set();
-const placed = []; // {p, clickable}
-for (const p of projects) {
-  if (!p.id) { warn(`project with no id (name="${p.name ?? "?"}") skipped`); continue; }
-  if (seen.has(p.id)) { warn(`duplicate project id "${p.id}" skipped`); continue; }
-  seen.add(p.id);
-  if (!colIds.includes(p.column)) { warn(`project "${p.id}" has unknown column "${p.column}" — skipped`); continue; }
-  if (!layerById.has(p.layer)) { warn(`project "${p.id}" has unknown layer "${p.layer}" — skipped`); continue; }
-  if (p.category && !categories[p.category]) warn(`project "${p.id}" has unknown category "${p.category}" — using 'other'`);
-  placed.push({ p, clickable: Boolean(p.overview) });
-}
-
-const catClass = (p) => (categories[p.category]?.class) ?? "eco-cat-other";
+const catClass = (p) => categories[p.category]?.class ?? "eco-cat-other";
 const nodeClasses = (p) => {
   const cls = ["eco-node", catClass(p)];
   if (!p.overview) cls.push("eco-node--static");
   return cls.join(" ");
 };
-
-// ----- render nodes --------------------------------------------------------
-const projectsIn = (layerId, colId) =>
-  placed.filter(({ p }) => p.layer === layerId && p.column === colId).map(({ p }) => p);
-
-// Clickable nodes are <label>s that toggle a hidden radio (see panels below).
-// Using radios + :checked instead of anchor + :target, because Fern renders
-// in-page links as client-side (pushState) navigations, which do NOT update the
-// CSS :target pseudo-class — so :target panels never reveal. Radios need no
-// navigation and work purely in CSS.
 const renderNode = (p) => {
   const name = safe(p.name ?? p.id, `project ${p.id} name`);
   return p.overview
@@ -102,60 +88,76 @@ const renderNode = (p) => {
     : `<span className="${nodeClasses(p)}">${name}</span>`;
 };
 
-const renderCell = (nodes, extraClass = "") =>
-  `<div className="eco-cell${extraClass}">\n${nodes.map(renderNode).join("\n") || ""}\n</div>`;
+// ----- place cells ---------------------------------------------------------
+// Grid lines: label column = line 1, data column i => line i+2. Header row =
+// line 1, data row j => line j+2.
+const used = new Set();
+const clickable = []; // ordered project objects with panels
+const cellEls = [];
 
-// ----- diagram grid (layers rendered top -> bottom) ------------------------
-const gridParts = [];
-gridParts.push(`<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack">`);
-gridParts.push(`<div className="eco-corner" />`);
-for (const c of columns) gridParts.push(`<div className="eco-colhead">${safe(c.label, `column ${c.id}`)}</div>`);
-
-let nodeCount = 0;
-for (const layer of [...layers].reverse()) {
-  gridParts.push(`<div className="eco-rowlabel">${safe(layer.label, `layer ${layer.id}`)}</div>`);
-  if (layer.span === "full") {
-    const nodes = columns.flatMap((c) => projectsIn(layer.id, c.id));
-    nodeCount += nodes.length;
-    gridParts.push(renderCell(nodes, " eco-cell--full"));
-  } else {
-    for (const c of columns) {
-      const nodes = projectsIn(layer.id, c.id);
-      nodeCount += nodes.length;
-      gridParts.push(renderCell(nodes));
-    }
+for (const cell of cells) {
+  if (!colIndex.has(cell.col)) { warn(`cell at row "${cell.row}" has unknown col "${cell.col}" — skipped`); continue; }
+  if (!rowIndex.has(cell.row)) { warn(`cell at col "${cell.col}" has unknown row "${cell.row}" — skipped`); continue; }
+  const ci = colIndex.get(cell.col);
+  const ri = rowIndex.get(cell.row);
+  let colSpan = Number(cell.colSpan ?? 1);
+  let rowSpan = Number(cell.rowSpan ?? 1);
+  if (ci + colSpan > columns.length) {
+    warn(`cell (${cell.col},${cell.row}) colSpan ${colSpan} overflows; clamped`);
+    colSpan = columns.length - ci;
   }
+  if (ri + rowSpan > rows.length) {
+    warn(`cell (${cell.col},${cell.row}) rowSpan ${rowSpan} overflows; clamped`);
+    rowSpan = rows.length - ri;
+  }
+  const nodes = [];
+  for (const pid of cell.projects ?? []) {
+    const p = byId.get(pid);
+    if (!p) { warn(`cell (${cell.col},${cell.row}) references unknown project "${pid}" — skipped`); continue; }
+    if (used.has(pid)) warn(`project "${pid}" placed more than once`);
+    used.add(pid);
+    nodes.push(renderNode(p));
+    if (p.overview && !clickable.includes(p)) clickable.push(p);
+  }
+  const gc = `${ci + 2} / span ${colSpan}`;
+  const gr = `${ri + 2} / span ${rowSpan}`;
+  cellEls.push(
+    `<div className="eco-cell" style={{gridColumn: "${gc}", gridRow: "${gr}"}}>\n${nodes.join("\n")}\n</div>`
+  );
 }
-gridParts.push(`</div>`);
 
-// ----- overview panels (default panel LAST so the :target ~ rule works) ----
+for (const p of projects) if (p.id && !used.has(p.id)) warn(`project "${p.id}" is in the registry but not placed in any cell`);
+
+// ----- grid (container + headers + row labels + cells) ---------------------
+const template = "max-content " + columns.map((c) => `${c.width ?? 1}fr`).join(" ");
+const grid = [`<div className="eco-diagram-grid" role="group" aria-label="JAX on NVIDIA GPU stack" style={{gridTemplateColumns: "${template}"}}>`];
+grid.push(`<div className="eco-corner" style={{gridColumn: "1", gridRow: "1"}} />`);
+columns.forEach((c, i) =>
+  grid.push(`<div className="eco-colhead" style={{gridColumn: "${i + 2}", gridRow: "1"}}>${safe(c.label, `column ${c.id}`)}</div>`)
+);
+rows.forEach((r, j) =>
+  grid.push(`<div className="eco-rowlabel" style={{gridColumn: "1", gridRow: "${j + 2}"}}>${safe(r.label, `row ${r.id}`)}</div>`)
+);
+grid.push(...cellEls);
+grid.push(`</div>`);
+
+// ----- overview panels (radio :checked reveal; default panel LAST) ---------
 const readSnippet = (p) => {
-  const rel = p.overview;
-  const file = join(ECO_DIR, rel);
-  if (!existsSync(file)) {
-    warn(`missing snippet for "${p.id}": ${rel}`);
-    return `_Overview coming soon._`;
-  }
+  const file = join(ECO_DIR, p.overview);
+  if (!existsSync(file)) { warn(`missing snippet for "${p.id}": ${p.overview}`); return `_Overview coming soon._`; }
   const body = readFileSync(file, "utf8").trim();
-  if (!body) { warn(`empty snippet for "${p.id}": ${rel}`); return `_Overview coming soon._`; }
+  if (!body) { warn(`empty snippet for "${p.id}": ${p.overview}`); return `_Overview coming soon._`; }
   return body;
 };
 
-// Each clickable project: a hidden radio immediately followed by its panel, so
-// `.eco-radio:checked + .eco-panel` reveals it. The radios are wrapped with each
-// panel in an .eco-choice so MDX can't break the radio/panel adjacency. Blank
-// lines around the body => MDX renders it as markdown inside the JSX div.
 const panelParts = [`<div className="eco-panels">`];
-for (const { p, clickable } of placed) {
-  if (!clickable) continue; // static nodes (e.g. hardware) have no panel
+for (const p of clickable) {
   const learn = p.href ? `\n\n[Learn more →](${p.href})` : "";
   panelParts.push(
     `<div className="eco-choice">\n<input className="eco-radio" type="radio" name="eco-sel" id="r-${p.id}" />\n<div className="eco-panel" id="proj-${p.id}">\n\n**${safe(p.name ?? p.id, p.id)}**\n\n${readSnippet(p)}${learn}\n\n</div>\n</div>`
   );
 }
-panelParts.push(
-  `<div className="eco-panel eco-panel--default">\n\nSelect a project in the diagram to see its overview.\n\n</div>`
-);
+panelParts.push(`<div className="eco-panel eco-panel--default">\n\nSelect a project in the diagram to see its overview.\n\n</div>`);
 panelParts.push(`</div>`);
 
 // ----- legend --------------------------------------------------------------
@@ -166,15 +168,8 @@ for (const key of Object.keys(categories)) {
 }
 legendParts.push(`</div>`);
 
-// ----- compose + splice ----------------------------------------------------
-const block = [
-  legendParts.join("\n"),
-  ``,
-  `<div className="eco-wrap">`,
-  gridParts.join("\n"),
-  panelParts.join("\n"),
-  `</div>`,
-].join("\n");
+// ----- compose + splice page ----------------------------------------------
+const block = [legendParts.join("\n"), ``, `<div className="eco-wrap">`, grid.join("\n"), panelParts.join("\n"), `</div>`].join("\n");
 
 if (!existsSync(PAGE)) die(`page not found: ${PAGE}`);
 let page = readFileSync(PAGE, "utf8");
@@ -184,12 +179,7 @@ page = page.replace(markerRe, `$1\n\n${block}\n\n$2`);
 writeFileSync(PAGE, page);
 
 // ----- generated CSS: highlight the selected node --------------------------
-// CSS can't correlate a :checked <input> with its <label> by for/id generically,
-// so emit one :has() selector per clickable project. Written to a separate file
-// (referenced from fern/docs.yml) so hand-maintained main.css stays untouched.
-const CSS_OUT = join(ECO_DIR, "ecosystem.generated.css");
-const clickableIds = placed.filter((x) => x.clickable).map((x) => x.p.id);
-const selectors = clickableIds.map((id) => `.eco-wrap:has(#r-${id}:checked) label[for="r-${id}"]`);
+const selectors = clickable.map((p) => `.eco-wrap:has(#r-${p.id}:checked) label[for="r-${p.id}"]`);
 const css = [
   `/* AUTO-GENERATED by scripts/build-ecosystem.mjs — do not edit by hand.`,
   ` * Highlights the selected project node (the <label> whose radio is checked). */`,
@@ -199,12 +189,11 @@ const css = [
   ``,
 ].join("\n");
 writeFileSync(CSS_OUT, css);
-console.log(`[ecosystem] wrote ${CSS_OUT.replace(ROOT + "/", "")}`);
 
 // ----- summary -------------------------------------------------------------
-const clickableCount = placed.filter((x) => x.clickable).length;
-console.log(`[ecosystem] ${placed.length} projects placed (${clickableCount} with panels, ${nodeCount} nodes in grid)`);
-console.log(`[ecosystem] wrote ${PAGE.replace(ROOT + "/", "")}`);
+console.log(`[ecosystem] ${used.size} projects placed across ${cells.length} cells (${clickable.length} with panels)`);
+console.log(`[ecosystem] grid: ${columns.length} columns (${columns.map((c) => c.width ?? 1).join("/")}) x ${rows.length} rows`);
+console.log(`[ecosystem] wrote ${PAGE.replace(ROOT + "/", "")} and ${CSS_OUT.replace(ROOT + "/", "")}`);
 if (warnings.length) {
   console.log(`[ecosystem] ${warnings.length} warning(s):`);
   for (const w of warnings) console.log(`  - ${w}`);
