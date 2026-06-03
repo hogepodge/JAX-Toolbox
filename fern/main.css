@@ -101,30 +101,18 @@
   --eco-other: #6b7280;
 }
 
+/* Compact + sharp-cornered; the overview panel sits BELOW the diagram. */
 .eco-wrap {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.25rem;
-  align-items: start;
+  display: block;
   margin: 1.25rem 0;
-}
-@media (max-width: 900px) {
-  .eco-wrap { grid-template-columns: 1fr; }
-}
-
-.eco-diagram {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-content: flex-start;
 }
 
 .eco-node {
   display: inline-block;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 3px 7px;
+  border-radius: 2px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   line-height: 1.2;
   text-decoration: none;
   color: inherit;
@@ -139,11 +127,13 @@
 /* NVIDIA-contributes = green outline overlay; composes on top of any fill. */
 .eco-contributes { box-shadow: inset 0 0 0 2px var(--nv-green); }
 
-/* Overview panels — CSS-only :target reveal. The default panel must be the LAST
- * sibling so the general-sibling rule below can hide it once any panel is targeted. */
+/* Overview panels — CSS-only :target reveal, shown BELOW the diagram. The default
+ * panel must be the LAST sibling so the sibling rule can hide it on :target. */
 .eco-panels {
-  border-left: 2px solid color-mix(in srgb, var(--nv-green) 30%, transparent);
-  padding-left: 1rem;
+  margin-top: 0.9rem;
+  border-top: 2px solid color-mix(in srgb, var(--nv-green) 30%, transparent);
+  padding-top: 0.75rem;
+  font-size: 0.85rem;
 }
 .eco-panel { display: none; scroll-margin-top: 6rem; }
 .eco-panel:target { display: block; }
@@ -155,37 +145,38 @@
 .eco-diagram-grid {
   display: grid;
   grid-template-columns: max-content repeat(3, 1fr);
-  gap: 6px;
+  gap: 4px;
   align-items: stretch;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 .eco-colhead {
   text-align: center;
   font-weight: 700;
-  font-size: 0.72rem;
-  padding: 6px 8px;
-  border-radius: 6px;
+  font-size: 0.64rem;
+  padding: 3px 6px;
+  border-radius: 2px;
   background: color-mix(in srgb, var(--nv-green) 10%, transparent);
 }
 .eco-rowlabel {
   align-self: center;
   text-align: right;
-  padding-right: 8px;
-  font-size: 0.6rem;
+  padding-right: 6px;
+  font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   opacity: 0.7;
 }
 .eco-cell {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
+  justify-content: center;
   align-content: flex-start;
-  padding: 6px;
+  padding: 4px;
   border: 1px dashed color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 6px;
-  min-height: 2.6rem;
+  border-radius: 2px;
+  min-height: 1.8rem;
 }
 .eco-cell--full { grid-column: 2 / -1; }
 .eco-node--static { cursor: default; }
@@ -194,15 +185,15 @@
 .eco-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin: 0 0 12px;
-  font-size: 0.75rem;
+  gap: 12px;
+  margin: 0 0 10px;
+  font-size: 0.68rem;
 }
 .eco-legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .eco-swatch {
-  width: 16px;
-  height: 12px;
-  border-radius: 3px;
+  width: 14px;
+  height: 11px;
+  border-radius: 1px;
   border: 1.5px solid transparent;
   display: inline-block;
 }
